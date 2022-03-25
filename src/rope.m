@@ -1,4 +1,4 @@
-classdef rope
+classdef Rope < handle
     
     properties
         x = 0;
@@ -7,11 +7,14 @@ classdef rope
     end
     
     methods
-        function set.x(obj,x)
-            obj.x = x
+        function updatePos(obj, distance,angle)
+            set.x(obj, distance*cosd(angle))
+            set.y(obj, distance*sind(angle))
         end
         
-        
+        function toggleRopeType(obj)
+            set.hoistRope(obj, not(obj.hoistRope))
+        end
   
     end
 end
