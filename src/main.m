@@ -32,7 +32,15 @@ angle = data(:,angleLocation);
 angle = table2array(angle);
 angle = str2double(angle);
 
-clear data timeLocation amplitudeLocation distanceLocation angleLocation columnNames;
+% Combine Values to Matrix [time, angle, distance, amplitude]
+filteredData = zeros(length,4);
+filteredData(:,1) = time;
+filteredData(:,2) = angle;
+filteredData(:,3) = distance;
+filteredData(:,4) = amplitude;
+
+clear data timeLocation amplitudeLocation distanceLocation angleLocation; 
+clear columnNames time distance angle amplitude;
 
 
 % Assuming format of column vectors of [time, angle, distance, amplitude]
