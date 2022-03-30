@@ -1,4 +1,4 @@
-%% Loading the Data
+%% Loading the Data yep it's walter
 
 data = readtable('318_Data.xlsx');
 columnNames = upper(data.Properties.VariableNames);
