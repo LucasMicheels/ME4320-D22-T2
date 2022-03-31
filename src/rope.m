@@ -1,4 +1,4 @@
-classdef rope < handle
+classdef Rope < handle
     
     properties
         x = 0;
@@ -18,4 +18,5 @@ classdef rope < handle
   
     end
 end
+
 
