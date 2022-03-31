@@ -1,9 +1,7 @@
-classdef rope < handle
+classdef frame < handle
     
     properties
-        x = 0;
-        y = 0;
-        hoistRope = true;
+        
     end
     
     methods
@@ -18,4 +16,3 @@ classdef rope < handle
   
     end
 end
-
