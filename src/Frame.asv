@@ -86,15 +86,18 @@ classdef Frame < handle
 			filteredDataDimensions = [];
 			for i = 1:rows
 				if and(isCorner, and(ITS_RAW(i, 2) < 360, and(ITS_RAW(i, 2) >= 270, ITS_RAW(i, 3) > 0 )))
-					if and(ITS_RAW(i, 2) <= obj.eleDimX - obj.posX, and(ITS_RAW(i, 2) >= 0 - obj.posX, and(ITS_RAW(i, 3) <= obj.eleDimY - obj.posY, ITS_RAW(i, 3) >= 0 - obj.posY)))
+					x = ITS_RAW(i, 2);
+        			y = ITS_RAW(i, 3);
+					if and(x <= obj.MaxX - obj.posX, and(x >= 0 - obj.posX, and(y <= obj.MaxY - obj.posY, y >= 0 - obj.posY)))
 						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
 					end
 				elseif ITS_RAW(i, 3) > 0
-					if and(ITS_RAW(i, 2) <= obj.eleDimX - obj.posX, and(ITS_RAW(i, 2) >= 0 - obj.posX, and(ITS_RAW(i, 3) <= obj.eleDimY - obj.posY, ITS_RAW(i, 3) >= 0 - obj.posY)))
+					x = ITS_RAW(i, 2);
+        			y = ITS_RAW(i, 3);
+					if and(x <= obj.MaxX - obj.posX, and(x >= 0 - obj.posX, and(y <= obj.MaxY - obj.posY, y >= 0 - obj.posY)))
 						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
 					end
 				end
-				i
 			end
         end
 
@@ -119,7 +122,7 @@ classdef Frame < handle
                     ropes = [ropes; mean(cluster, 2) mean(cluster, 3)];
                     cluster = [];
                 end
-				i
+        
             end
         end
         
@@ -130,7 +133,6 @@ classdef Frame < handle
 			hold on
 			for i = 1:rows
 				plot(data(i, 2), data(i, 3), 'o')
-				i
 			end
 			hold off
 		end
