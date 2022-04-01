@@ -70,19 +70,44 @@ classdef Frame < handle
 				if and(isCorner, and(ITS_RAW(i, 2) < 360, and(ITS_RAW(i, 2) >= 270, ITS_RAW(i, 3) > 0 )))
 					x = ITS_RAW(i, 3) * cosd(ITS_RAW(i, 2));
         			y = -ITS_RAW(i, 3) * sind(ITS_RAW(i, 2));
-					if and(x <= MaxX, and(x >= 0, and(y <= MaxY, y >= 0)))
+					if and(x <= MaxX - posX, and(x >= 0 - posX, and(y <= MaxY - posY, y >= 0 - posY)))
 						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
 					end
 				elseif ITS_RAW(i, 3) > 0
 					x = ITS_RAW(i, 3) * cosd(ITS_RAW(i, 2));
         			y = -ITS_RAW(i, 3) * sind(ITS_RAW(i, 2));
-					if and(x <= MaxX, and(x >= 0, and(y <= MaxY, y >= 0)))
+					if and(x <= MaxX - posX, and(x >= 0 - posX, and(y <= MaxY - posY, y >= 0 - posY)))
 						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
 					end
 				end
 			end
-		end
+        end
 
+        % Assuming format of column vectors of [time, angle, distance, amplitude]
+        % Will take in filtered data (so only the ropes) and merge data points that
+        % are close together; will need to do some brainstorming for edge cases;
+        % maybe instead of just looking at the mean, we can make an imaginary
+        % circle and whatever is an outlier is considered another rope; final
+        % output is a nx2 matrix with angles and dist; assuming polar coordinates
+        function ropes = mergeDataPoints(obj, filteredData)
+            ropes = [];
+            cluster = [filteredData(1,:)];
+            [rows, ~] = size(filteredData);
+            for i = 2:rows
+                if and(and(...
+                        filteredData(i, 2) <= filteredData(i - 1, 2) + 0.005,...
+                        filteredData(i, 2) >= filteredData(i - 1, 2) - 0.005),and(...
+                        filteredData(i, 3) <= filteredData(i - 1, 3) + 3,...
+                        filteredData(i, 3) >= filteredData(i - 1, 3) - 3))
+                    cluster = [cluster; filteredData(i,:)];
+                else
+                    ropes = [ropes; mean(cluster, 2) mean(cluster, 3)];
+                    cluster = [];
+                end
+        
+            end
+        end
+        
 		% super basic plotter; just enter the filtered data and it plots in
 		% cartesian
 		function justPlotPls(obj, data)
