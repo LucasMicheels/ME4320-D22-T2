@@ -6,7 +6,8 @@ classdef Frame < handle
 		eleDimX = 0;
 		eleDimY = 0;
 		axisPadding = 100;    % in mm
-		clusterPadding = 2;   % in mm
+		clusterPadding = 1.5;   % in mm
+		sensorRotationCorrection = -91;
     end
     
     methods
@@ -21,9 +22,9 @@ classdef Frame < handle
 			obj.eleDimY = eleY;
 		end
 
-		% loads the data into proper format; time is in ____; angle is in
-		% degrees; distance is in mm; amplitude is in ____; Combine Values
-		% to Matrix [time, angle, distance, amplitude]
+		% loads the data into proper format; time is in ____; x and y are
+		% in mm; amplitude is in ____; Combine Values
+		% to Matrix [x, y, time]
 		function raw_data = loadData(obj, excel_file_name)
             data = readtable(excel_file_name);
             columnNames = upper(data.Properties.VariableNames);
@@ -54,7 +55,7 @@ classdef Frame < handle
 				if distance(i) >= 0
 					xt = ((distance(i) + 18.863) / 1.0095) * cosd(angle(i));     % added bias of the sensor
         			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % added bias of the sensor
-					transCoord = [0, -1, obj.posX; 1, 0, obj.posY; 0, 0, 1] * [xt; yt; 1];
+					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
 					raw_data = [raw_data; transCoord(1), transCoord(2), time(i)];
 				end
 			end
@@ -114,16 +115,38 @@ classdef Frame < handle
                 end
 				disp(i/rows * 100 + "% complete")
             end
+		end
+
+		function ropes = mergeDataPoints2(obj, filteredData)
+            ropes = [];
+            cluster = [filteredData(1,:)];
+            [rows, ~] = size(filteredData);
+            for i = 2:rows
+                [points, ~] = size(cluster);
+				if (obj.clusterPadding + 1)^2 <= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
+					cluster = [cluster; filteredData(i,:)];
+				elseif points >= 3
+					ropes = [ropes; mean(cluster(:,1)), mean(cluster(:,2))];
+                    cluster = [filteredData(i,:)];
+				else
+					cluster = [filteredData(i,:)];
+                end
+				disp(i/rows * 100 + "% complete")
+            end
         end
         
 		% super basic plotter; just enter the filtered data and it plots in
 		% cartesian
 		function justPlotPls(obj, data, graphTitle)
-			plot(data(:, 1), data(:, 2), 'o')
-			title("Graph of " + graphTitle)
-			axis([-obj.axisPadding, obj.eleDimX + obj.axisPadding, -obj.axisPadding, obj.eleDimY + obj.axisPadding])
-			xlabel("x (mm)") 
-			ylabel("y (mm)")
+			try
+				plot(data(:, 1), data(:, 2), 'o')
+				title("Graph of " + graphTitle)
+				axis([-obj.axisPadding, obj.eleDimX + obj.axisPadding, -obj.axisPadding, obj.eleDimY + obj.axisPadding])
+				xlabel("x (mm)") 
+				ylabel("y (mm)")
+			catch exception
+				disp("no data")
+			end
 		end
 	end
 end
