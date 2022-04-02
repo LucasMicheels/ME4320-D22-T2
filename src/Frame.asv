@@ -5,6 +5,8 @@ classdef Frame < handle
 		posY = 0;
 		eleDimX = 0;
 		eleDimY = 0;
+		axisPadding = 100;    % in mm
+		clusterPadding = 2;   % in mm
     end
     
     methods
@@ -20,7 +22,8 @@ classdef Frame < handle
 		end
 
 		% loads the data into proper format; time is in ____; angle is in
-		% degrees; distance is in mm; amplitude is in ____
+		% degrees; distance is in mm; amplitude is in ____; Combine Values
+		% to Matrix [time, angle, distance, amplitude]
 		function raw_data = loadData(obj, excel_file_name)
             data = readtable(excel_file_name);
             columnNames = upper(data.Properties.VariableNames);
@@ -31,44 +34,38 @@ classdef Frame < handle
             time = data(:,timeLocation);
             time = table2array(time);
             time = str2double(time);
-            length = size(time,1);
-            
-            % Finding Amplitude Values
-%             amplitudeLocation = strfind(columnNames, 'AMPLITUTE');
-%             amplitudeLocation = find(~cellfun(@isempty,amplitudeLocation));
-%             amplitude = data(:,amplitudeLocation);
-%             amplitude = table2array(amplitude);
-%             amplitude = str2double(amplitude);
             
             % Finding Distance and Angle Values; Then convert to x and y
             distanceLocation = strfind(columnNames, 'DISTANCE');
             distanceLocation = find(~cellfun(@isempty,distanceLocation));
 			angleLocation = strfind(columnNames, 'ANGLE');
             angleLocation = find(~cellfun(@isempty,angleLocation));
-			distance = data(:,angleLocation);
+			distance = data(:,distanceLocation);
 			distance = table2array(distance);
             distance = str2double(distance);
 			angle = data(:,angleLocation);
             angle = table2array(angle);
             angle = str2double(angle);
-			[rows, ~] = size(angleLocation);
+			[rows, ~] = size(angle);
 			x = [];
 			y = [];
+			raw_data = [];
 			for i = 1:rows
-				xt = distance(i) * cosd(angle(i));
-        		yt = distance(i) * sind(angle(i));
-				transCoord = [0, -1, obj.posX; 1, 0, obj.posY; 0, 0, 1] * [xt; yt; 1];
-				x = [x; transCoord(1)];
-				y = [y; transCoord(2)];
+				if distance(i) >= 0
+					xt = ((distance(i) + 18.863) / 1.0095) * cosd(angle(i));     % added bias of the sensor
+        			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % added bias of the sensor
+					transCoord = [0, -1, obj.posX; 1, 0, obj.posY; 0, 0, 1] * [xt; yt; 1];
+					raw_data = [raw_data; transCoord(1), transCoord(2), time(i)];
+				end
 			end
             
-            % Combine Values to Matrix [time, angle, distance, amplitude]
-			raw_data = zeros(length,4);
-			raw_data(:,1) = time;
-			raw_data(:,2) = x;
-			raw_data(:,3) = y;
-% 			raw_data(:,4) = amplitude;
-            
+			% Finding Amplitude Values
+%             amplitudeLocation = strfind(columnNames, 'AMPLITUTE');
+%             amplitudeLocation = find(~cellfun(@isempty,amplitudeLocation));
+%             amplitude = data(:,amplitudeLocation);
+%             amplitude = table2array(amplitude);
+%             amplitude = str2double(amplitude);
+
             clear data timeLocation amplitudeLocation distanceLocation angleLocation; 
             clear columnNames time distance angle amplitude;
 		end
@@ -85,19 +82,16 @@ classdef Frame < handle
 			[rows, ~] = size(ITS_RAW);
 			filteredDataDimensions = [];
 			for i = 1:rows
-				if and(isCorner, and(ITS_RAW(i, 2) < 360, and(ITS_RAW(i, 2) >= 270, ITS_RAW(i, 3) > 0 )))
-					x = ITS_RAW(i, 2);
-        			y = ITS_RAW(i, 3);
-					if and(x <= obj.MaxX - obj.posX, and(x >= 0 - obj.posX, and(y <= obj.MaxY - obj.posY, y >= 0 - obj.posY)))
+				if and(isCorner, and(ITS_RAW(i, 1) <= obj.eleDimX, and(ITS_RAW(i, 1) >= obj.posX, and(ITS_RAW(i, 2) <= obj.eleDimY, ITS_RAW(i, 2) >= obj.posY))))
+					if and(ITS_RAW(i, 1) <= obj.eleDimX, and(ITS_RAW(i, 1) >= 0, and(ITS_RAW(i, 2) <= obj.eleDimY, ITS_RAW(i, 2) >= 0)))
 						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
 					end
-				elseif ITS_RAW(i, 3) > 0
-					x = ITS_RAW(i, 2);
-        			y = ITS_RAW(i, 3);
-					if and(x <= obj.MaxX - obj.posX, and(x >= 0 - obj.posX, and(y <= obj.MaxY - obj.posY, y >= 0 - obj.posY)))
+				else
+					if and(ITS_RAW(i, 1) <= obj.eleDimX, and(ITS_RAW(i, 1) >= 0, and(ITS_RAW(i, 2) <= obj.eleDimY, ITS_RAW(i, 2) >= 0)))
 						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
 					end
 				end
+				fprintf('%.3f % complete', i/rows * 100 + "% complete")
 			end
         end
 
@@ -112,30 +106,24 @@ classdef Frame < handle
             cluster = [filteredData(1,:)];
             [rows, ~] = size(filteredData);
             for i = 2:rows
-                if and(and(...
-                        filteredData(i, 2) <= filteredData(i - 1, 2) + 0.005,...
-                        filteredData(i, 2) >= filteredData(i - 1, 2) - 0.005),and(...
-                        filteredData(i, 3) <= filteredData(i - 1, 3) + 3,...
-                        filteredData(i, 3) >= filteredData(i - 1, 3) - 3))
+                if obj.clusterPadding^2 <= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
                     cluster = [cluster; filteredData(i,:)];
                 else
-                    ropes = [ropes; mean(cluster, 2) mean(cluster, 3)];
-                    cluster = [];
-                end
-        
+                    ropes = [ropes; mean(cluster(:,1)), mean(cluster(:,2))];
+                    cluster = [filteredData(i,:)];
+				end
+				fprintf('%.3f', i/rows * 100 + "% complete")
             end
         end
         
 		% super basic plotter; just enter the filtered data and it plots in
 		% cartesian
-		function justPlotPls(obj, data)
-			[rows, ~] = size(data);
-			hold on
-			for i = 1:rows
-				plot(data(i, 2), data(i, 3), 'o')
-			end
-			hold off
+		function justPlotPls(obj, data, graphTitle)
+			plot(data(:, 1), data(:, 2), 'o')
+			title("Graph of " + graphTitle)
+			axis([-obj.axisPadding, obj.eleDimX + obj.axisPadding, -obj.axisPadding, obj.eleDimY + obj.axisPadding])
+			xlabel("x (mm)") 
+			ylabel("y (mm)")
 		end
-
 	end
 end
