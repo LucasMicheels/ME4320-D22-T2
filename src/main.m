@@ -4,10 +4,10 @@ clear;
 
 
 % Setup user variables
-sensorPosX = 120;
-sensorPosY = 140;
-elevatorDimensionsX = 930;
-elevatorDimensionsY = 1100;
+sensorPosX = 140;
+sensorPosY = 205;
+elevatorDimensionsX = 975;
+elevatorDimensionsY = 1200;
 
 % Setup classes
 frame = Frame;
@@ -26,9 +26,9 @@ singular = frame.mergeDataPoints(BS);
 figure(3)
 frame.justPlotPls(singular, "Only Ropes")
 
-dubular = frame.mergeDataPoints2(singular);
-figure(4)
-frame.justPlotPls(dubular, "Only Ropes2")
+% dubular = frame.mergeDataPoints2(singular);
+% figure(4)
+% frame.justPlotPls(dubular, "Only Ropes2")
 
 disp('finished')
 

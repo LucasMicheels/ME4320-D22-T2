@@ -117,25 +117,25 @@ classdef Frame < handle
             end
 		end
 
-		function ropes = mergeDataPoints2(obj, filteredData)
-            ropes = [];
-            [rows, ~] = size(filteredData);
-            while rows > 0
-				cluster = [filteredData(1,:)];
-				filteredData(1,:) = [];
-				for i = 1:rows
-                	[points, ~] = size(cluster);
-					if (obj.clusterPadding + 1)^2 <= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
-						cluster = [cluster; filteredData(i,:)];
-						filteredData(i,:) = [];
-                	end
-				end
-				if points >= 3
-					ropes = [ropes; mean(cluster(:,1)), mean(cluster(:,2))];
-				end
-				[rows, ~] = size(filteredData);
-			end
-        end
+% 		function ropes = mergeDataPoints2(obj, filteredData)
+%             ropes = [];
+%             [rows, ~] = size(filteredData);
+%             while rows > 0
+% 				cluster = [filteredData(1,:)];
+% 				filteredData(1,:) = [];
+% 				for i = 1:rows
+%                 	[points, ~] = size(cluster);
+% 					if (obj.clusterPadding + 1)^2 <= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
+% 						cluster = [cluster; filteredData(i,:)];
+% 						filteredData(i,:) = [];
+%                 	end
+% 				end
+% 				if points >= 3
+% 					ropes = [ropes; mean(cluster(:,1)), mean(cluster(:,2))];
+% 				end
+% 				[rows, ~] = size(filteredData);
+% 			end
+%         end
         
 		% super basic plotter; just enter the filtered data and it plots in
 		% cartesian
