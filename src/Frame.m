@@ -5,9 +5,10 @@ classdef Frame < handle
 		posY = 0;
 		eleDimX = 0;
 		eleDimY = 0;
-		axisPadding = 100;    % in mm
-		clusterPadding = 1.5;   % in mm
-		sensorRotationCorrection = -91;
+		axisPadding = 100;               % in mm
+		clusterPadding = 1.5;            % in mm
+		sensorRotationCorrection = -90;  % in degrees
+		wallFilteringPadding = 30;       % in mm
     end
     
     methods
@@ -22,9 +23,8 @@ classdef Frame < handle
 			obj.eleDimY = eleY;
 		end
 
-		% loads the data into proper format; time is in ____; x and y are
-		% in mm; amplitude is in ____; Combine Values
-		% to Matrix [x, y, time]
+		% loads the data into proper format; x and y are
+		% in mm; Combine Values to Matrix [x, y, time]
 		function raw_data = loadData(obj, excel_file_name)
             data = readtable(excel_file_name);
             columnNames = upper(data.Properties.VariableNames);
@@ -60,15 +60,8 @@ classdef Frame < handle
 				end
 			end
             
-			% Finding Amplitude Values
-%             amplitudeLocation = strfind(columnNames, 'AMPLITUTE');
-%             amplitudeLocation = find(~cellfun(@isempty,amplitudeLocation));
-%             amplitude = data(:,amplitudeLocation);
-%             amplitude = table2array(amplitude);
-%             amplitude = str2double(amplitude);
-
-            clear data timeLocation amplitudeLocation distanceLocation angleLocation; 
-            clear columnNames time distance angle amplitude;
+            clear data timeLocation distanceLocation angleLocation; 
+            clear columnNames time distance angle x y;
 		end
 
 		% Brendyn's code to filter walls based on dimensions; RAWMEAT is
@@ -84,11 +77,11 @@ classdef Frame < handle
 			filteredDataDimensions = [];
 			for i = 1:rows
 				if and(isCorner, and(ITS_RAW(i, 1) <= obj.eleDimX, and(ITS_RAW(i, 1) >= obj.posX, and(ITS_RAW(i, 2) <= obj.eleDimY, ITS_RAW(i, 2) >= obj.posY))))
-					if and(ITS_RAW(i, 1) <= obj.eleDimX, and(ITS_RAW(i, 1) >= 0, and(ITS_RAW(i, 2) <= obj.eleDimY, ITS_RAW(i, 2) >= 0)))
+					if and(ITS_RAW(i, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(ITS_RAW(i, 1) >= 0 + obj.wallFilteringPadding, and(ITS_RAW(i, 2) <= obj.eleDimY - obj.wallFilteringPadding, ITS_RAW(i, 2) >= 0 + obj.wallFilteringPadding)))
 						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
 					end
 				else
-					if and(ITS_RAW(i, 1) <= obj.eleDimX, and(ITS_RAW(i, 1) >= 0, and(ITS_RAW(i, 2) <= obj.eleDimY, ITS_RAW(i, 2) >= 0)))
+					if and(ITS_RAW(i, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(ITS_RAW(i, 1) >= 0 + obj.wallFilteringPadding, and(ITS_RAW(i, 2) <= obj.eleDimY - obj.wallFilteringPadding, ITS_RAW(i, 2) >= 0 + obj.wallFilteringPadding)))
 						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
 					end
 				end
@@ -116,26 +109,6 @@ classdef Frame < handle
 				disp(i/rows * 100 + "% complete")
             end
 		end
-
-% 		function ropes = mergeDataPoints2(obj, filteredData)
-%             ropes = [];
-%             [rows, ~] = size(filteredData);
-%             while rows > 0
-% 				cluster = [filteredData(1,:)];
-% 				filteredData(1,:) = [];
-% 				for i = 1:rows
-%                 	[points, ~] = size(cluster);
-% 					if (obj.clusterPadding + 1)^2 <= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
-% 						cluster = [cluster; filteredData(i,:)];
-% 						filteredData(i,:) = [];
-%                 	end
-% 				end
-% 				if points >= 3
-% 					ropes = [ropes; mean(cluster(:,1)), mean(cluster(:,2))];
-% 				end
-% 				[rows, ~] = size(filteredData);
-% 			end
-%         end
         
 		% super basic plotter; just enter the filtered data and it plots in
 		% cartesian
