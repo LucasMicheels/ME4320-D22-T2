@@ -7,7 +7,7 @@ classdef Frame < handle
 		eleDimY = 0;
 		expectedNumRopes = 0;
 		axisPadding = 100;               % in mm
-		clusterPadding = 1.5;              % in mm
+		clusterPadding = 5;              % in mm
 		sensorRotationCorrection = -90;  % in degrees
 		wallFilteringPadding = 30;       % in mm
     end
@@ -107,16 +107,24 @@ classdef Frame < handle
             potentialRopes = [];
             cluster = [filteredData(1,:)];
             rows = size(filteredData, 1);
+            ropes = zeros(obj.expectedNumRopes,3);
             for i = 2:rows
-                if obj.clusterPadding^2 <= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
+                if obj.clusterPadding^2 >= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
                     cluster = [cluster; filteredData(i,:)];
-				else
-					potentialRopes = [potentialRopes; mean(cluster(:,1)), mean(cluster(:,2))];
-                    cluster = [filteredData(i,:)];
+                    if (size(cluster,1) > 1)
+                        potentialRopes = [potentialRopes; mean(cluster(:,1)), mean(cluster(:,2)), size(cluster,1)];
+                    end
                 end
 				disp(i/rows * 100 + "% complete")
-			end
-			ropes = potentialRopes;
+            end
+            for c = 1:size(potentialRopes)
+                for j = 2:obj.expectedNumRopes
+                    if potentialRopes(c,3) > ropes(j,3)
+                        ropes(j - 1,:) = ropes(j,:);
+                        ropes(j,:) = potentialRopes(c,:);
+                    end
+                end
+            end
 		end
         
 		% super basic plotter; just enter the filtered data and it plots in
