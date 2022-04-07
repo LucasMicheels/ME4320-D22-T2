@@ -7,7 +7,7 @@ classdef Frame < handle
 		eleDimY = 0;
 		expectedNumRopes = 0;
 		axisPadding = 100;               % in mm
-		clusterPadding = 1.5;            % in mm
+		clusterPadding = 1;              % in mm
 		sensorRotationCorrection = -90;  % in degrees
 		wallFilteringPadding = 30;       % in mm
     end
@@ -59,8 +59,10 @@ classdef Frame < handle
 					xt = ((distance(i) + 18.863) / 1.0095) * cosd(angle(i));     % added bias of the sensor
         			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % added bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
-					if and(angle(i) <= 1, and(angle(i - 1) > 350), i > 1)        % sets which sweep a data point belongs to
-						sweep = sweep + 1;
+                    if i > 1
+						if and(angle(i - 1) > 350, angle(i) <= 1)        % sets which sweep a data point belongs to
+                            sweep = sweep + 1;
+						end
 					end
 					raw_data = [raw_data; transCoord(1), transCoord(2), sweep, time(i)];
 				end
@@ -112,13 +114,18 @@ classdef Frame < handle
 					for j = 1:obj.expectedNumRopes
 						if size(cluster, 1) > ropes(j, 3)
 							if j < obj.expectedNumRopes
+								e = 0;
 								for k = j:(obj.expectedNumRopes - 1)
-									ropes(k + 1, :) = [ropes(k)];
+									ropes(obj.expectedNumRopes - e, :) = [ropes(obj.expectedNumRopes - e - 1, :)];
+									e = e + 1;
 								end
-								ropes(j,:) = [mean(cluster(:,1)), mean(cluster(:,2)), size(cluster,1)];
+								[x, y, ~, ~] = mean(cluster, 1);
+								ropes(j,:) = [x, y, size(cluster,1)];
 							else
-								ropes(j,:) = [mean(cluster(:,1)), mean(cluster(:,2)), size(cluster,1)];
+								[x, y] = mean(cluster, 1);
+								ropes(j,:) = [x, y, size(cluster,1)];
 							end
+							break;
 						end
 					end
                     cluster = [filteredData(i,:)];
