@@ -27,10 +27,6 @@ singular = frame.mergeDataPoints(BS);
 figure(3)
 frame.justPlotPls(singular, "Only Ropes")
 
-% dubular = frame.mergeDataPoints2(singular);
-% figure(4)
-% frame.justPlotPls(dubular, "Only Ropes2")
-
 disp('finished')
 
 

@@ -7,7 +7,7 @@ classdef Frame < handle
 		eleDimY = 0;
 		expectedNumRopes = 0;
 		axisPadding = 100;               % in mm
-		clusterPadding = 1;              % in mm
+		clusterPadding = 1.5;              % in mm
 		sensorRotationCorrection = -90;  % in degrees
 		wallFilteringPadding = 30;       % in mm
     end
@@ -104,34 +104,19 @@ classdef Frame < handle
         % circle and whatever is an outlier is considered another rope; final
         % output is a nx2 matrix with angles and dist; assuming polar coordinates
         function ropes = mergeDataPoints(obj, filteredData)
-            ropes = zeros(obj.expectedNumRopes, 3);
+            potentialRopes = [];
             cluster = [filteredData(1,:)];
             rows = size(filteredData, 1);
             for i = 2:rows
                 if obj.clusterPadding^2 <= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
                     cluster = [cluster; filteredData(i,:)];
 				else
-					for j = 1:obj.expectedNumRopes
-						if size(cluster, 1) > ropes(j, 3)
-							if j < obj.expectedNumRopes
-								e = 0;
-								for k = j:(obj.expectedNumRopes - 1)
-									ropes(obj.expectedNumRopes - e, :) = [ropes(obj.expectedNumRopes - e - 1, :)];
-									e = e + 1;
-								end
-								[x, y, ~, ~] = mean(cluster, 1);
-								ropes(j,:) = [x, y, size(cluster,1)];
-							else
-								[x, y] = mean(cluster, 1);
-								ropes(j,:) = [x, y, size(cluster,1)];
-							end
-							break;
-						end
-					end
+					potentialRopes = [potentialRopes; mean(cluster(:,1)), mean(cluster(:,2))];
                     cluster = [filteredData(i,:)];
                 end
 				disp(i/rows * 100 + "% complete")
 			end
+			ropes = potentialRopes;
 		end
         
 		% super basic plotter; just enter the filtered data and it plots in
