@@ -102,7 +102,7 @@ classdef Frame < handle
         % circle and whatever is an outlier is considered another rope; final
         % output is a nx2 matrix with angles and dist; assuming polar coordinates
         function ropes = mergeDataPoints(obj, filteredData)
-            ropes = zeros(obj.expectedNumRopes, 3);
+            ropes = [];
             cluster = [filteredData(1,:)];
             rows = size(filteredData, 1);
             for i = 2:rows
