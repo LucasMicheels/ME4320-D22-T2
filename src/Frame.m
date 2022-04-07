@@ -7,7 +7,7 @@ classdef Frame < handle
 		eleDimY = 0;
 		expectedNumRopes = 0;
 		axisPadding = 100;               % in mm
-		clusterPadding = 5;              % in mm
+		clusterPadding = 10;              % in mm
 		sensorRotationCorrection = -90;  % in degrees
 		wallFilteringPadding = 30;       % in mm
     end
@@ -117,11 +117,19 @@ classdef Frame < handle
                 end
 				disp(i/rows * 100 + "% complete")
             end
-            for c = 1:size(potentialRopes)
-                for j = 2:obj.expectedNumRopes
-                    if potentialRopes(c,3) > ropes(j,3)
-                        ropes(j - 1,:) = ropes(j,:);
-                        ropes(j,:) = potentialRopes(c,:);
+            for p = 1:size(potentialRopes, 1)
+                for r = 1:obj.expectedNumRopes
+                    if potentialRopes(p,3) > ropes(r,3)
+                        for u = 1:obj.expectedNumRopes
+							if obj.expectedNumRopes > 1
+								ropes(obj.expectedNumRopes - u + 1,:) = ropes(obj.expectedNumRopes - u, :);
+								if u == obj.expectedNumRopes - r
+									break
+								end
+							end
+						end
+						ropes(r, :) = potentialRopes(p,:);
+						break
                     end
                 end
             end
