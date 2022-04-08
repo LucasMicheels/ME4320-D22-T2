@@ -82,20 +82,32 @@ classdef Frame < handle
 		% the raw data; isCorner is a boolean that if true the function will 
 		% only look in a 90 degree field of view from the origin; the 
 		% coordinate system is the first quadrant of the cartesian coordinate system
-		function filteredDataDimensions = wallFilteringDIMENSIONS(obj, rawData, isCorner)
+		function filteredDataDimensions = wallFilteringDIMENSIONS(obj, rawData, frame, isCorner)
 			[rows, ~] = size(rawData);
 			filteredDataDimensions = [];
-			for i = 1:rows
-				if and(isCorner, and(rawData(i, 1) <= obj.eleDimX, and(rawData(i, 1) >= obj.posX, and(rawData(i, 2) <= obj.eleDimY, rawData(i, 2) >= obj.posY))))
-					if and(rawData(i, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(i, 1) >= 0 + obj.wallFilteringPadding, and(rawData(i, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(i, 2) >= 0 + obj.wallFilteringPadding)))
-						filteredDataDimensions = [filteredDataDimensions; rawData(i, :)];
+			frameSeen = frame;
+			while frameSeen == frame
+				if and(isCorner, and(rawData(1, 1) <= obj.eleDimX, and(rawData(1, 1) >= obj.posX, and(rawData(1, 2) <= obj.eleDimY, rawData(1, 2) >= obj.posY))))
+					if and(rawData(1, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(1, 1) >= 0 + obj.wallFilteringPadding, and(rawData(1, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(1, 2) >= 0 + obj.wallFilteringPadding)))
+						rawData(1,:) = [];
+						if rawData(1, 3) == frame
+							filteredDataDimensions = [filteredDataDimensions; rawData(1, :)];
+						end
+					end
+				elseif and(rawData(1, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(1, 1) >= 0 + obj.wallFilteringPadding, and(rawData(1, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(1, 2) >= 0 + obj.wallFilteringPadding)))
+					rawData(1,:) = [];
+					if rawData(1, 3) == frame
+						filteredDataDimensions = [filteredDataDimensions; rawData(1, :)];
 					end
 				else
-					if and(rawData(i, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(i, 1) >= 0 + obj.wallFilteringPadding, and(rawData(i, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(i, 2) >= 0 + obj.wallFilteringPadding)))
-						filteredDataDimensions = [filteredDataDimensions; rawData(i, :)];
-					end
+					rawData(1,:) = [];
 				end
-				disp(i/rows * 100 + "% complete")
+				
+				if size(rawData, 1) > 0
+					frameSeen = rawData(1, 3);
+				else
+					frameSeen = -1;
+				end
 			end
         end
 
