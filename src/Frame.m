@@ -1,22 +1,28 @@
 classdef Frame < handle
     
     properties
-        posX = 0;
-		posY = 0;
-		eleDimX = 0;
-		eleDimY = 0;
-		expectedNumRopes = 0;
+        % user input properties (basically, properties that are based on
+		% the build of the elevator/shaft
+		posX = 0;                        % x position of the sensor origin relative to the elevator coordinate origin
+		posY = 0;                        % y position of the sensor origin relative to the elevator coordinate origin
+		eleDimX = 0;                     % width of the shaft
+		eleDimY = 0;                     % length of the shaft
+		expectedNumRopes = 0;            % expected number of ropes the sensor should see
+
+		% properties related to tolerances of the program when doing
+		% calculations
 		axisPadding = 100;               % in mm
-		clusterPadding = 35;              % in mm
+		clusterPadding = 20;             % in mm
 		sensorRotationCorrection = -90;  % in degrees
 		wallFilteringPadding = 30;       % in mm
     end
     
     methods
-		%object instantiation
+		% object instantiation
 		function obj = Frame()
 		end
 
+		% sets the user input properties of the frame
 		function setFrame(obj, x, y, eleX, eleY, numRopes)
 			obj.posX = x;
 			obj.posY = y;
@@ -56,8 +62,8 @@ classdef Frame < handle
 			sweep = 1;
 			for i = 1:rows
 				if distance(i) >= 0
-					xt = ((distance(i) + 18.863) / 1.0095) * cosd(angle(i));     % added bias of the sensor
-        			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % added bias of the sensor
+					xt = ((distance(i) + 18.863) / 1.0095) * cosd(angle(i));     % adds bias of the sensor
+        			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
 						if and(angle(i - 1) > 350, angle(i) <= 1)        % sets which sweep a data point belongs to
@@ -72,25 +78,21 @@ classdef Frame < handle
             clear columnNames time distance angle x y;
 		end
 
-		% Brendyn's code to filter walls based on dimensions; RAWMEAT is
-		% the raw data; MaxX is the width of the shaft; MaxY is the length
-		% of the shaft; posX is the x position of the sensor origin
-		% relative to the coordinate origin; posY is the y position of the 
-		% sensor origin relative to the coordinate origin; isCorner is a 
-		% boolean that if true the function will only look in a 90 degree
-		% field of view from the origin; the coordinate system is the first
-		% quadrant of the cartesian coordinate system
-		function filteredDataDimensions = wallFilteringDIMENSIONS(obj, ITS_RAW, isCorner)
-			[rows, ~] = size(ITS_RAW);
+		% code to filter walls based on dimensions; rawData is
+		% the raw data; isCorner is a boolean that if true the function will 
+		% only look in a 90 degree field of view from the origin; the 
+		% coordinate system is the first quadrant of the cartesian coordinate system
+		function filteredDataDimensions = wallFilteringDIMENSIONS(obj, rawData, isCorner)
+			[rows, ~] = size(rawData);
 			filteredDataDimensions = [];
 			for i = 1:rows
-				if and(isCorner, and(ITS_RAW(i, 1) <= obj.eleDimX, and(ITS_RAW(i, 1) >= obj.posX, and(ITS_RAW(i, 2) <= obj.eleDimY, ITS_RAW(i, 2) >= obj.posY))))
-					if and(ITS_RAW(i, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(ITS_RAW(i, 1) >= 0 + obj.wallFilteringPadding, and(ITS_RAW(i, 2) <= obj.eleDimY - obj.wallFilteringPadding, ITS_RAW(i, 2) >= 0 + obj.wallFilteringPadding)))
-						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
+				if and(isCorner, and(rawData(i, 1) <= obj.eleDimX, and(rawData(i, 1) >= obj.posX, and(rawData(i, 2) <= obj.eleDimY, rawData(i, 2) >= obj.posY))))
+					if and(rawData(i, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(i, 1) >= 0 + obj.wallFilteringPadding, and(rawData(i, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(i, 2) >= 0 + obj.wallFilteringPadding)))
+						filteredDataDimensions = [filteredDataDimensions; rawData(i, :)];
 					end
 				else
-					if and(ITS_RAW(i, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(ITS_RAW(i, 1) >= 0 + obj.wallFilteringPadding, and(ITS_RAW(i, 2) <= obj.eleDimY - obj.wallFilteringPadding, ITS_RAW(i, 2) >= 0 + obj.wallFilteringPadding)))
-						filteredDataDimensions = [filteredDataDimensions; ITS_RAW(i, :)];
+					if and(rawData(i, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(i, 1) >= 0 + obj.wallFilteringPadding, and(rawData(i, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(i, 2) >= 0 + obj.wallFilteringPadding)))
+						filteredDataDimensions = [filteredDataDimensions; rawData(i, :)];
 					end
 				end
 				disp(i/rows * 100 + "% complete")
@@ -99,17 +101,14 @@ classdef Frame < handle
 
         % Assuming format of column vectors of [time, angle, distance, amplitude]
         % Will take in filtered data (so only the ropes) and merge data points that
-        % are close together; will need to do some brainstorming for edge cases;
-        % maybe instead of just looking at the mean, we can make an imaginary
-        % circle and whatever is an outlier is considered another rope; final
-        % output is a nx2 matrix with angles and dist; assuming polar coordinates
-        function ropes = mergeDataPoints(obj, filteredData)
+        % are close together; final output is a nx2 matrix as x and y
+		function points = mergeDataPoints(obj, filteredData)
             potentialRopes = [];
             cluster = [filteredData(1,:)];
             rows = size(filteredData, 1);
             ropes = zeros(obj.expectedNumRopes,3);
             for i = 2:rows
-                if obj.clusterPadding^2 >= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2
+                if obj.clusterPadding^2 >= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2 %#ok<ALIGN> 
                     cluster = [cluster; filteredData(i,:)];
 				elseif size(cluster,1) > 1
 						averages = mean(cluster);
@@ -120,28 +119,29 @@ classdef Frame < handle
 				end
 				disp(i/rows * 50 + "% complete")
 			end
-            for p = 1:size(potentialRopes, 1)
-                for r = 1:obj.expectedNumRopes
-                    if potentialRopes(p,3) > ropes(r,3)
-                        for u = 1:obj.expectedNumRopes
-							if obj.expectedNumRopes > 1
-								ropes(obj.expectedNumRopes - u + 1,:) = ropes(obj.expectedNumRopes - u, :);
-								if u == obj.expectedNumRopes - r
-									break
+            for p = 1:size(potentialRopes, 1)    % checks each potential rope
+                for r = 1:obj.expectedNumRopes   % checks each potential rope with the list of the top clusters (ropes list)
+                    if potentialRopes(p,3) > ropes(r,3)  % looking to find/see if a potential rope has an entry that is better than one of the entries in the ropes list
+                        for u = 1:obj.expectedNumRopes   % starts the process of moving down entries in the ropes list
+							if obj.expectedNumRopes > 1 && ~(u == obj.expectedNumRopes)                     % check to see if only looking for top one entry or if moved all the entries in ropes down one
+								ropes(obj.expectedNumRopes - u + 1,:) = ropes(obj.expectedNumRopes - u, :); % sets the current entry to the entry above it
+								if u == obj.expectedNumRopes - r                                            % checking to see if it has moved down the entries below the target entry index
+									break                                                                   % breaks out of loop so it doesn't move entries down that we don't want to move down
 								end
 							end
 						end
-						ropes(r, :) = potentialRopes(p,:);
+						ropes(r, :) = potentialRopes(p,:);                                                  % sets the target entry in the ropes list to the entry from the potential ropes list
 						break
                     end
 				end
 				disp(((i/rows * 50) + 50) + "% complete")
-            end
+			end
+			points = [ropes(:, 1), ropes(:, 2)];
 		end
         
 		% super basic plotter; just enter the filtered data and it plots in
-		% cartesian
-		function justPlotPls(obj, data, graphTitle)
+		% cartesian; assuming input data has form [x, y, ...]
+		function elevatorPlotter(obj, data, graphTitle)
 			try
 				plot(data(:, 1), data(:, 2), 'o')
 				title("Graph of " + graphTitle)
@@ -149,7 +149,7 @@ classdef Frame < handle
 				xlabel("x (mm)") 
 				ylabel("y (mm)")
 			catch exception
-				disp("no data")
+				disp("no data or data input is unexpected")
 			end
 		end
 	end

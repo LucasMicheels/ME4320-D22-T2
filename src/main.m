@@ -15,18 +15,22 @@ frame = Frame;
 frame.setFrame(sensorPosX, sensorPosY, elevatorDimensionsX, elevatorDimensionsY, numRopes);
 
 % Main script
-its_RAW = frame.loadData('Copy of New System test 4-11.xlsx');
+rawData = frame.loadData('Copy of New System test 4-11.xlsx');
 figure(1)
-frame.justPlotPls(its_RAW, "Raw Data")
+frame.elevatorPlotter(rawData, "Raw Data")
 
-BS = frame.wallFilteringDIMENSIONS(its_RAW, false);
+filteredData = frame.wallFilteringDIMENSIONS(rawData, false);
 figure(2)
-frame.justPlotPls(BS, "Filtered Data")
+frame.elevatorPlotter(filteredData, "Filtered Data")
 
-singular = frame.mergeDataPoints(BS);
+singularPoints = frame.mergeDataPoints(filteredData);
 figure(3)
-frame.justPlotPls(singular, "Only Ropes")
+frame.elevatorPlotter(singularPoints, "Only Ropes")
 
-disp('finished')
+% FOR DEBUGGING ONLY
+disp("debugging section")
+expectedRopePositions_X_Y = [540, 480; 595, 1000]
+
+disp("program completed successfully")
 
 
