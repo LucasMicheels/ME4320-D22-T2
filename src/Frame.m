@@ -66,7 +66,7 @@ classdef Frame < handle
         			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 350, angle(i) <= 1)        % sets which sweep a data point belongs to
+						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             sweep = sweep + 1;
 						end
 					end
@@ -79,34 +79,29 @@ classdef Frame < handle
 		end
 
 		% code to filter walls based on dimensions; rawData is
-		% the raw data; isCorner is a boolean that if true the function will 
-		% only look in a 90 degree field of view from the origin; the 
-		% coordinate system is the first quadrant of the cartesian coordinate system
-		function filteredDataDimensions = wallFilteringDIMENSIONS(obj, rawData, frame, isCorner)
-			[rows, ~] = size(rawData);
+		% the raw data; the 
+		% coordinate system is the first quadrant of the cartesian coordinate
+		% system; function must be given data set starting in the frame
+		% it's looking for; dataToRemove is the amount of data removed from
+		% the rawData it was given
+		function [filteredDataDimensions, dataToRemove] = wallFilteringDIMENSIONS(obj, rawData, frame)
 			filteredDataDimensions = [];
-			frameSeen = frame;
-			while frameSeen == frame
-				if and(isCorner, and(rawData(1, 1) <= obj.eleDimX, and(rawData(1, 1) >= obj.posX, and(rawData(1, 2) <= obj.eleDimY, rawData(1, 2) >= obj.posY))))
-					if and(rawData(1, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(1, 1) >= 0 + obj.wallFilteringPadding, and(rawData(1, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(1, 2) >= 0 + obj.wallFilteringPadding)))
-						rawData(1,:) = [];
-						if rawData(1, 3) == frame
-							filteredDataDimensions = [filteredDataDimensions; rawData(1, :)];
-						end
-					end
-				elseif and(rawData(1, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(1, 1) >= 0 + obj.wallFilteringPadding, and(rawData(1, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(1, 2) >= 0 + obj.wallFilteringPadding)))
+			dataToRemove = 0;
+			frameSeen = frame
+			while frameSeen == frame && size(rawData, 1) > 0  % will keep going through the loop until either it has seen all the data in a certain frame or if there are no more data to look through
+				if and(rawData(1, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(1, 1) >= 0 + obj.wallFilteringPadding, and(rawData(1, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(1, 2) >= 0 + obj.wallFilteringPadding)))
+					filteredDataDimensions = [filteredDataDimensions; rawData(1, :)];
 					rawData(1,:) = [];
-					if rawData(1, 3) == frame
-						filteredDataDimensions = [filteredDataDimensions; rawData(1, :)];
-					end
+					dataToRemove = dataToRemove + 1;
 				else
 					rawData(1,:) = [];
+					dataToRemove = dataToRemove + 1;
 				end
-				
+
 				if size(rawData, 1) > 0
 					frameSeen = rawData(1, 3);
 				else
-					frameSeen = -1;
+					frameSeen = -1;                              % flag to say its done
 				end
 			end
         end
@@ -129,7 +124,6 @@ classdef Frame < handle
 				else
 					cluster = [filteredData(i,:)];
 				end
-				disp(i/rows * 50 + "% complete")
 			end
             for p = 1:size(potentialRopes, 1)    % checks each potential rope
                 for r = 1:obj.expectedNumRopes   % checks each potential rope with the list of the top clusters (ropes list)
@@ -146,7 +140,6 @@ classdef Frame < handle
 						break
                     end
 				end
-				disp(((i/rows * 50) + 50) + "% complete")
 			end
 			points = [ropes(:, 1), ropes(:, 2)];
 		end

@@ -19,9 +19,10 @@ rawData = frame.loadData('New System test 4-1.xlsx');
 lastFrame = max(rawData(:, 3));
 
 for f = 1:lastFrame
-	filteredData = frame.wallFilteringDIMENSIONS(rawData, 1, false);
+	clf
+	[filteredData, dataToRemove] = frame.wallFilteringDIMENSIONS(rawData, f);
+	rawData(1:dataToRemove, :) = [];
 	singularPoints = frame.mergeDataPoints(filteredData);
-	figure(f)
 	frame.elevatorPlotter(singularPoints, "Only Ropes")
 end
 
