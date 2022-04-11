@@ -18,12 +18,13 @@ frame.setFrame(sensorPosX, sensorPosY, elevatorDimensionsX, elevatorDimensionsY,
 rawData = frame.loadData('New System test 4-1.xlsx');
 lastFrame = max(rawData(:, 3));
 
+figure
 for f = 1:lastFrame
-	clf
 	[filteredData, dataToRemove] = frame.wallFilteringDIMENSIONS(rawData, f);
 	rawData(1:dataToRemove, :) = [];
 	singularPoints = frame.mergeDataPoints(filteredData);
-	frame.elevatorPlotter(singularPoints, "Only Ropes")
+	frame.elevatorPlotter(singularPoints, "Only Ropes");
+    pause(0.1);
 end
 
 % FOR DEBUGGING ONLY
