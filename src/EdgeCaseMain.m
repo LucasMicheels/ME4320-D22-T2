@@ -32,5 +32,3 @@ disp("debugging section")
 expectedRopePositions_X_Y = [540, 480; 595, 1000]
 
 disp("program completed successfully")
-
-
