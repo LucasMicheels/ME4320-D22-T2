@@ -1,4 +1,4 @@
-classdef Ropes
+classdef Ropes < handle
 	
     properties
         ropes                 % n x 8 matrix; [ropeNum, x(mm), y(mm), velocityX(mm/s), velocityY(mm/s), accelerationX(mm^2/s), accelerationY(mm^2/s), isHoistRope?]
