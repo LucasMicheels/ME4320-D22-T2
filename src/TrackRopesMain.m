@@ -9,10 +9,13 @@ sensorPosY = 205;
 elevatorDimensionsX = 975;
 elevatorDimensionsY = 1200;
 numRopes = 2;
+timeBetweenFrames = -1;
 
 % Setup classes
 frame = Frame;
 frame.setFrame(sensorPosX, sensorPosY, elevatorDimensionsX, elevatorDimensionsY, numRopes);
+ropeSet = Ropes;
+ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
 rawData = frame.loadData('New System test 4-1.xlsx');
@@ -29,6 +32,5 @@ end
 
 % FOR DEBUGGING ONLY
 disp("debugging section")
-expectedRopePositions_X_Y = [540, 480; 595, 1000]
 
 disp("program completed successfully")
