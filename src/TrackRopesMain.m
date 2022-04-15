@@ -4,8 +4,8 @@ clear;
 
 
 % Setup user variables
-sensorPosX = 140;
-sensorPosY = 205;
+sensorPosX = 889;
+sensorPosY = 76.2;
 elevatorDimensionsX = 975;
 elevatorDimensionsY = 1200;
 numRopes = 2;
@@ -18,9 +18,9 @@ ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
-rawData = frame.manualLoadData('A2M8_concrete_Team2_close_straight_wall_test (1).xlsx');
+rawData = frame.justloadrawData('R2000-P2CornMvmtPara.xlsx');
 figure(2)
-frame.elevator
+frame.elevatorPlotter(rawData, "Raw Data");
 lastFrame = max(rawData(:, 3));
 
 figure(1)

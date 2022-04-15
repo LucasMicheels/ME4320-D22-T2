@@ -70,6 +70,44 @@ classdef Frame < handle
             clear data timeLocation distanceLocation angleLocation; 
             clear columnNames distance angle x y;
 		end
+		
+		function raw_data = justloadrawData(obj, excel_file_name)
+            data = readtable(excel_file_name);
+            columnNames = upper(data.Properties.VariableNames);
+            
+            % Finding Distance and Angle Values; Then convert to x and y
+            distanceLocation = strfind(columnNames, 'DISTANCE');
+            distanceLocation = find(~cellfun(@isempty,distanceLocation));
+			angleLocation = strfind(columnNames, 'ANGLE');
+            angleLocation = find(~cellfun(@isempty,angleLocation));
+			distance = data(:,distanceLocation);
+			distance = table2array(distance);
+            distance = str2double(distance);
+			angle = data(:,angleLocation);
+            angle = table2array(angle);
+            angle = str2double(angle);
+			[rows, ~] = size(angle);
+			x = [];
+			y = [];
+			raw_data = [];
+			sweep = 1;
+			for i = 1:rows
+				if distance(i) >= 0
+					xt = distance(i) * cosd(angle(i));     % adds bias of the sensor
+        			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
+					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
+                    if i > 1
+						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            sweep = sweep + 1;
+						end
+					end
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
+				end
+			end
+            
+            clear data timeLocation distanceLocation angleLocation; 
+            clear columnNames distance angle x y;
+		end
 
 		% assuming angle, distance, manually sets up raw data
 		function raw_data = manualLoadData(obj, excel_file)
