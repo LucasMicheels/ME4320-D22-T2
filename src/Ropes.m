@@ -14,8 +14,8 @@ classdef Ropes < handle
 
 		% setup function to setup initial zero matrices
 		function setRopes(obj, numRopes, time)
-			obj.ropes = zeros(size(ropePoints,1), 8);
-			obj.previousFrameRopes = zeros(size(ropePoints,1), 8);
+			obj.ropes = zeros(numRopes, 8);
+			obj.previousFrameRopes = zeros(numRopes, 8);
 			obj.timeBetweenFrames = time;
 			obj.numRopes = numRopes;
 		end

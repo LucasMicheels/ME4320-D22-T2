@@ -36,13 +36,6 @@ classdef Frame < handle
 		function raw_data = loadData(obj, excel_file_name)
             data = readtable(excel_file_name);
             columnNames = upper(data.Properties.VariableNames);
-
-            % Finding Time Values
-            timeLocation = strfind(columnNames, 'TIME');
-            timeLocation = find(~cellfun(@isempty,timeLocation));
-            time = data(:,timeLocation);
-            time = table2array(time);
-            time = str2double(time);
             
             % Finding Distance and Angle Values; Then convert to x and y
             distanceLocation = strfind(columnNames, 'DISTANCE');
@@ -70,12 +63,37 @@ classdef Frame < handle
                             sweep = sweep + 1;
 						end
 					end
-					raw_data = [raw_data; transCoord(1), transCoord(2), sweep, time(i)];
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
 				end
 			end
             
             clear data timeLocation distanceLocation angleLocation; 
-            clear columnNames time distance angle x y;
+            clear columnNames distance angle x y;
+		end
+
+		% assuming angle, distance, manually sets up raw data
+		function raw_data = manualLoadData(obj, excel_file)
+			data = readtable(excel_file);
+			distance = data(2:end,2);
+			angle = data(2:end,1);
+			[rows, ~] = size(angle);
+			x = [];
+			y = [];
+			raw_data = [];
+			sweep = 1;
+			for i = 1:rows
+				if distance(i) >= 0
+					xt = ((distance(i) + 18.863) / 1.0095) * cosd(angle(i));     % adds bias of the sensor
+        			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % adds bias of the sensor
+					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
+                    if i > 1
+						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            sweep = sweep + 1;
+						end
+					end
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
+				end
+			end
 		end
 
 		% code to filter walls based on dimensions; rawData is

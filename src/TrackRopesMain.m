@@ -9,7 +9,7 @@ sensorPosY = 205;
 elevatorDimensionsX = 975;
 elevatorDimensionsY = 1200;
 numRopes = 2;
-timeBetweenFrames = -1;
+timeBetweenFrames = 1;
 
 % Setup classes
 frame = Frame;
@@ -18,7 +18,7 @@ ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
-rawData = frame.loadData('New System test 4-1.xlsx');
+rawData = frame.manualLoadData('A2M8_concrete_Team2_close_straight_wall_test (1).xlsx');
 lastFrame = max(rawData(:, 3));
 
 figure(1)
