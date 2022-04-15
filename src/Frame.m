@@ -110,16 +110,16 @@ classdef Frame < handle
         % Will take in filtered data (so only the ropes) and merge data points that
         % are close together; final output is a nx2 matrix as x and y
 		function points = mergeDataPoints(obj, filteredData)
-            potentialRopes = [];
-            cluster = [filteredData(1,:)];
-            rows = size(filteredData, 1);
-            ropes = zeros(obj.expectedNumRopes,3);
-            for i = 2:rows
+			potentialRopes = [];
+			cluster = [filteredData(1,:)];
+			rows = size(filteredData, 1);
+			ropes = zeros(obj.expectedNumRopes,3);
+			for i = 2:rows
                 if obj.clusterPadding^2 >= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2 %#ok<ALIGN> 
                     cluster = [cluster; filteredData(i,:)];
 				elseif size(cluster,1) > 1
 						averages = mean(cluster);
-                        potentialRopes = [potentialRopes; averages(1), averages(2), size(cluster,1)];
+						potentialRopes = [potentialRopes; averages(1), averages(2), size(cluster,1)];
 						cluster = [filteredData(i,:)];
 				else
 					cluster = [filteredData(i,:)];
