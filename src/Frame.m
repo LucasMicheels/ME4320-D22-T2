@@ -74,6 +74,7 @@ classdef Frame < handle
 		% assuming angle, distance, manually sets up raw data
 		function raw_data = manualLoadData(obj, excel_file)
 			data = readtable(excel_file);
+			data = table2array(data);
 			distance = data(2:end,2);
 			angle = data(2:end,1);
 			[rows, ~] = size(angle);

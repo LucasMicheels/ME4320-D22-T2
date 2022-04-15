@@ -19,6 +19,8 @@ ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
 rawData = frame.manualLoadData('A2M8_concrete_Team2_close_straight_wall_test (1).xlsx');
+figure(2)
+frame.elevator
 lastFrame = max(rawData(:, 3));
 
 figure(1)
