@@ -1,8 +1,8 @@
-classdef Ropes
+classdef Ropes < handle
 	
     properties
-        ropes                 % n x 8 matrix; [ropeNum, x(mm), y(mm), velocityX(mm/s), velocityY(mm/s), accelerationX(mm^2/s), accelerationY(mm^2/s), isHoistRope?]
-		previousFrameRopes    % n x 8 matrix; [ropeNum, x(mm), y(mm), velocityX(mm/s), velocityY(mm/s), accelerationX(mm^2/s), accelerationY(mm^2/s), isHoistRope?]
+        ropes                 % n x 7 matrix; [x(mm), y(mm), velocityX(mm/s), velocityY(mm/s), accelerationX(mm^2/s), accelerationY(mm^2/s), isHoistRope?]
+		previousFrameRopes    % n x 7 matrix; [x(mm), y(mm), velocityX(mm/s), velocityY(mm/s), accelerationX(mm^2/s), accelerationY(mm^2/s), isHoistRope?]
 		timeBetweenFrames     % time in seconds between frames
 		numRopes              % expected number of ropes
     end
@@ -14,8 +14,8 @@ classdef Ropes
 
 		% setup function to setup initial zero matrices
 		function setRopes(obj, numRopes, time)
-			obj.ropes = zeros(size(ropePoints,1), 8);
-			obj.previousFrameRopes = zeros(size(ropePoints,1), 8);
+			obj.ropes = zeros(numRopes, 8);
+			obj.previousFrameRopes = zeros(numRopes, 8);
 			obj.timeBetweenFrames = time;
 			obj.numRopes = numRopes;
 		end
@@ -40,11 +40,79 @@ classdef Ropes
 		% currentFrame is in the form of a nx2 matrix which is the list of
 		% points of the current frame; updates the rope positions
 		function trackRope(obj, currentFrame)
-			if size(currentFrame, 1) == obj.numRopes
-				obj.previousFrameRopes = obj.ropes;
-				% linear programming magic
+			if size(currentFrame,1) == obj.numRopes
+				referenceTable = zeros(obj.numRopes);
+				
+				% sets up the reference table for the possible objects
+				for i = 1:obj.numRopes
+					radius = 1; % in mm
+					for j = 1:size(currentFrame,1)
+                		if radius^2 >= (obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2
+							referenceTable(i, j) = 1;
+						end
+					end
+				end
+	
+				% sets up the reference ropes and object numbers; goal is
+				% to find the newRopes which is an array from 1-5 with the
+				% number corresponding to the object for the index rope
+				newRopes = zeros(obj.numRopes, 1);
+				ropesLeft = [];
+				objectsLeft = [];
+				for i = 1:size(newRopes)
+					newRopes(i) = -1;
+					ropesLeft = [ropesLeft, i];
+					objectsLeft = [objectsLeft, i];
+				end
+				objectPos = currentFrame;
+
+				for i = 1:obj.numRopes  % edit for loop to while loop so it keeps going until no changes to reference table has occurs after going through each rope
+					if sum(referenceTable(i,:)) == 1
+						for j = 1:obj.numRopes
+							if referenceTable(i, j) == 1
+								newRopes(i) = j;
+								referenceTable(:,j) = 0;
+								ropesLeft(find(ropesLeft, i)) = [];
+								objectsLeft(find(objectsLeft, i)) = [];
+								break
+							end
+						end
+					end
+				end
+
+				if size(ropesLeft,1) >= 1            % if ambiguous points, then find closest points to previous frame
+					for g = 1:size(ropesLeft, 1)
+						x = obj.ropes(ropesLeft(g),1);
+						y = obj.ropes(ropesLeft(g),2);
+						closestDist = -1;
+						closestObject = -1;
+						for h = 1:size(objectsLeft, 1)
+							xt = objectPos(objectsLeft(h), 1);
+							yt = objectPos(objectsLeft(h), 2);
+							D = sqrt((x - xt)^2 + (y - yt)^2);
+							if closestDist > D || closestDist == -1
+								closestDist = D;
+								closestObject = objectsLeft(h);
+							end
+						end
+						objectsLeft(find(objectsLeft, closestObject)) = [];
+					end
+				end
+
+				% sets the current rope positions to the corresponding
+				% object positions
+				if min(newRopes) > 0                                   % double checks to make sure there are no issues with tracking the ropes
+					newRopePos = zeros(obj.numRopes, 7);
+					for i = 1:obj.numRopes
+						newRopePos(i, 1) = objectPos(newRopes(i), 1);
+						newRopePos(i, 2) = objectPos(newRopes(i), 2);
+					end
+					updatePos(newRopePos)
+				else
+					disp("error in tracking ropes")
+				end
 			else
-				disp("error; number of ropes in current frame does not match expected number of ropes")
+				disp("error in tracking ropes")
 			end
 		end
 
