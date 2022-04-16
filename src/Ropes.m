@@ -47,7 +47,8 @@ classdef Ropes < handle
 			if size(currentFrame,1) == obj.numRopes
 				referenceTable = zeros(obj.numRopes);
 				
-				% sets up the reference table for the possible objects
+				% sets up the reference table for the possible objects;
+				% need to figure out field of view logic
 				for i = 1:obj.numRopes
 					radius = 100; % in mm
 					for j = 1:size(currentFrame,1)
