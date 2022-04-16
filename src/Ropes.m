@@ -14,8 +14,8 @@ classdef Ropes < handle
 
 		% setup function to setup initial zero matrices
 		function setRopes(obj, numRopes, time)
-			obj.ropes = zeros(numRopes, 8);
-			obj.previousFrameRopes = zeros(numRopes, 8);
+			obj.ropes = zeros(numRopes, 7);
+			obj.previousFrameRopes = zeros(numRopes, 7);
 			obj.timeBetweenFrames = time;
 			obj.numRopes = numRopes;
 		end
@@ -27,11 +27,11 @@ classdef Ropes < handle
 			obj.ropes = ropes;
 		end
 
+		% arbitrarily assigns points to the ropes property
 		function assignRopes(obj, ropePoints)
 			for i = 1:size(ropePoints,1)
-				obj.ropes(i, 1) = i;
-				obj.ropes(i, 2) = ropePoints(i, 1);
-				obj.ropes(i, 3) = ropePoints(i, 2);
+				obj.ropes(i, 1) = ropePoints(i, 1);
+				obj.ropes(i, 2) = ropePoints(i, 2);
 			end
 		end
 
@@ -45,7 +45,7 @@ classdef Ropes < handle
 				
 				% sets up the reference table for the possible objects
 				for i = 1:obj.numRopes
-					radius = 1; % in mm
+					radius = 100; % in mm
 					for j = 1:size(currentFrame,1)
                 		if radius^2 >= (obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2
 							referenceTable(i, j) = 1;
@@ -80,13 +80,13 @@ classdef Ropes < handle
 					end
 				end
 
-				if size(ropesLeft,1) >= 1            % if ambiguous points, then find closest points to previous frame
-					for g = 1:size(ropesLeft, 1)
+				if size(ropesLeft,2) >= 1            % if ambiguous points, then find closest points to previous frame
+					for g = 1:size(ropesLeft, 2)
 						x = obj.ropes(ropesLeft(g),1);
 						y = obj.ropes(ropesLeft(g),2);
 						closestDist = -1;
 						closestObject = -1;
-						for h = 1:size(objectsLeft, 1)
+						for h = 1:size(objectsLeft, 2)
 							xt = objectPos(objectsLeft(h), 1);
 							yt = objectPos(objectsLeft(h), 2);
 							D = sqrt((x - xt)^2 + (y - yt)^2);
@@ -107,9 +107,9 @@ classdef Ropes < handle
 						newRopePos(i, 1) = objectPos(newRopes(i), 1);
 						newRopePos(i, 2) = objectPos(newRopes(i), 2);
 					end
-					updatePos(newRopePos)
+					obj.updatePos(newRopePos)
 				else
-					disp("error in tracking ropes")
+					disp("error in tracking ropes!")
 				end
 			else
 				disp("error in tracking ropes")

@@ -13,7 +13,7 @@ classdef Frame < handle
 		% calculations
 		axisPadding = 100;               % in mm
 		clusterPadding = 20;             % in mm
-		sensorRotationCorrection = -90;  % in degrees
+		sensorRotationCorrection = 90;  % in degrees
 		wallFilteringPadding = 30;       % in mm
     end
     
@@ -59,7 +59,7 @@ classdef Frame < handle
         			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						if and(angle(i - 1) > 170, angle(i) <= 92)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             sweep = sweep + 1;
 						end
 					end
@@ -71,6 +71,7 @@ classdef Frame < handle
             clear columnNames distance angle x y;
 		end
 		
+		% Loads the raw data without any transformations
 		function raw_data = justloadrawData(obj, excel_file_name)
             data = readtable(excel_file_name);
             columnNames = upper(data.Properties.VariableNames);
@@ -95,7 +96,7 @@ classdef Frame < handle
 				if distance(i) >= 0
 					xt = distance(i) * cosd(angle(i));     % adds bias of the sensor
         			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
-					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
+					transCoord = [xt; yt; 1];
                     if i > 1
 						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             sweep = sweep + 1;
@@ -205,7 +206,10 @@ classdef Frame < handle
 		% cartesian; assuming input data has form [x, y, ...]
 		function elevatorPlotter(obj, data, graphTitle)
 			try
+				hold on
 				plot(data(:, 1), data(:, 2), 'o')
+				plot(obj.posX, obj.posY, '*')
+				hold off
 				title("Graph of " + graphTitle)
 				axis([-obj.axisPadding, obj.eleDimX + obj.axisPadding, -obj.axisPadding, obj.eleDimY + obj.axisPadding])
 				xlabel("x (mm)") 
