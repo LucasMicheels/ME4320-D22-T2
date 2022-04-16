@@ -99,7 +99,7 @@ classdef Ropes < handle
 								closestObject = objectsLeft(h);
 							end
 						end
-						newRopes(g) = closestObject;
+						newRopes(g,)
 						objectsLeft(find(objectsLeft == closestObject)) = [];
 					end
 				end

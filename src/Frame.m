@@ -206,10 +206,7 @@ classdef Frame < handle
 		% cartesian; assuming input data has form [x, y, ...]
 		function elevatorPlotter(obj, data, graphTitle)
 			try
-				hold on
 				plot(data(:, 1), data(:, 2), 'o')
-				plot(obj.posX, obj.posY, '*')
-				hold off
 				title("Graph of " + graphTitle)
 				axis([-obj.axisPadding, obj.eleDimX + obj.axisPadding, -obj.axisPadding, obj.eleDimY + obj.axisPadding])
 				xlabel("x (mm)") 

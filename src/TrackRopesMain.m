@@ -8,8 +8,8 @@ sensorPosX = 889;
 sensorPosY = 76.2;
 elevatorDimensionsX = 975;
 elevatorDimensionsY = 1200;
-numRopes = 1;
-timeBetweenFrames = 1;
+numRopes = 2;
+timeBetweenFrames = 0.1;
 
 % Setup classes
 frame = Frame;
@@ -18,12 +18,12 @@ ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
-purerawData = frame.justloadrawData('R2000-P2CornMvmtPara.xlsx');
+purerawData = frame.justloadrawData('R2000-2CableCorn-C1P2-C2P3.xlsx');
 figure(2)
-frame.elevatorPlotter(purerawData, "Raw Data");
+frame.elevatorPlotter(purerawData, "pure Raw Data");
 rawData = frame.loadData('R2000-P2CornMvmtPara.xlsx');
 figure(3)
-frame.elevatorPlotter(rawData, "Raw Data");
+frame.elevatorPlotter(rawData, "trans Raw Data");
 lastFrame = max(rawData(:, 3));
 
 f1 = figure(1);
@@ -36,6 +36,8 @@ for f = 1:lastFrame
 
 	if f > 1
 		ropeSet.trackRope(singularPoints)
+		ropeSet.calKinematics();
+		ropeSet.getRope()
 	else
 		ropeSet.assignRopes(singularPoints)
 	end
