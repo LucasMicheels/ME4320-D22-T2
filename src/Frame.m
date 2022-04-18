@@ -13,7 +13,7 @@ classdef Frame < handle
 		% calculations
 		axisPadding = 100;               % in mm
 		clusterPadding = 20;             % in mm
-		sensorRotationCorrection = 90;  % in degrees
+		sensorRotationCorrection = 0;  % in degrees
 		wallFilteringPadding = 30;       % in mm
     end
     

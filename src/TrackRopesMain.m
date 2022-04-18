@@ -4,10 +4,10 @@ clear;
 
 
 % Setup user variables
-sensorPosX = 889;
-sensorPosY = 76.2;
-elevatorDimensionsX = 975;
-elevatorDimensionsY = 1200;
+sensorPosX = 90;
+sensorPosY = 130;
+elevatorDimensionsX = 990;
+elevatorDimensionsY = 1160;
 numRopes = 2;
 timeBetweenFrames = 0.1;
 
