@@ -13,7 +13,7 @@ classdef Frame < handle
 		% calculations
 		axisPadding = 100;               % in mm
 		clusterPadding = 20;             % in mm
-		sensorRotationCorrection = -90;  % in degrees
+		sensorRotationCorrection = -2;   % in degrees; positive is clockwise rotation
 		wallFilteringPadding = 30;       % in mm
     end
     
@@ -36,13 +36,6 @@ classdef Frame < handle
 		function raw_data = loadData(obj, excel_file_name)
             data = readtable(excel_file_name);
             columnNames = upper(data.Properties.VariableNames);
-
-            % Finding Time Values
-            timeLocation = strfind(columnNames, 'TIME');
-            timeLocation = find(~cellfun(@isempty,timeLocation));
-            time = data(:,timeLocation);
-            time = table2array(time);
-            time = str2double(time);
             
             % Finding Distance and Angle Values; Then convert to x and y
             distanceLocation = strfind(columnNames, 'DISTANCE');
@@ -66,16 +59,81 @@ classdef Frame < handle
         			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						if and(angle(i - 1) > 170, angle(i) <= 92)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             sweep = sweep + 1;
 						end
 					end
-					raw_data = [raw_data; transCoord(1), transCoord(2), sweep, time(i)];
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
 				end
 			end
             
             clear data timeLocation distanceLocation angleLocation; 
-            clear columnNames time distance angle x y;
+            clear columnNames distance angle x y;
+		end
+		
+		% Loads the raw data without any transformations
+		function raw_data = justloadrawData(obj, excel_file_name)
+            data = readtable(excel_file_name);
+            columnNames = upper(data.Properties.VariableNames);
+            
+            % Finding Distance and Angle Values; Then convert to x and y
+            distanceLocation = strfind(columnNames, 'DISTANCE');
+            distanceLocation = find(~cellfun(@isempty,distanceLocation));
+			angleLocation = strfind(columnNames, 'ANGLE');
+            angleLocation = find(~cellfun(@isempty,angleLocation));
+			distance = data(:,distanceLocation);
+			distance = table2array(distance);
+            distance = str2double(distance);
+			angle = data(:,angleLocation);
+            angle = table2array(angle);
+            angle = str2double(angle);
+			[rows, ~] = size(angle);
+			x = [];
+			y = [];
+			raw_data = [];
+			sweep = 1;
+			for i = 1:rows
+				if distance(i) >= 0
+					xt = distance(i) * cosd(angle(i));     % adds bias of the sensor
+        			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
+					transCoord = [xt; yt; 1];
+                    if i > 1
+						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            sweep = sweep + 1;
+						end
+					end
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
+				end
+			end
+            
+            clear data timeLocation distanceLocation angleLocation; 
+            clear columnNames distance angle x y;
+		end
+
+		% assuming angle, distance, manually sets up raw data
+		function raw_data = manualLoadData(obj, excel_file)
+			data = readtable(excel_file);
+			data = table2array(data);
+			distance = data(2:end,2);
+			angle = data(2:end,1);
+			[rows, ~] = size(angle);
+			x = [];
+			y = [];
+			raw_data = [];
+			sweep = 1;
+			for i = 1:rows
+				if distance(i) >= 0
+					xt = ((distance(i) + 18.863) / 1.0095) * cosd(angle(i));     % adds bias of the sensor
+        			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % adds bias of the sensor
+					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
+                    if i > 1
+						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            sweep = sweep + 1;
+						end
+					end
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
+				end
+			end
 		end
 
 		% code to filter walls based on dimensions; rawData is
@@ -110,16 +168,16 @@ classdef Frame < handle
         % Will take in filtered data (so only the ropes) and merge data points that
         % are close together; final output is a nx2 matrix as x and y
 		function points = mergeDataPoints(obj, filteredData)
-            potentialRopes = [];
-            cluster = [filteredData(1,:)];
-            rows = size(filteredData, 1);
-            ropes = zeros(obj.expectedNumRopes,3);
-            for i = 2:rows
+			potentialRopes = [];
+			cluster = [filteredData(1,:)];
+			rows = size(filteredData, 1);
+			ropes = zeros(obj.expectedNumRopes,3);
+			for i = 2:rows
                 if obj.clusterPadding^2 >= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2 %#ok<ALIGN> 
                     cluster = [cluster; filteredData(i,:)];
 				elseif size(cluster,1) > 1
 						averages = mean(cluster);
-                        potentialRopes = [potentialRopes; averages(1), averages(2), size(cluster,1)];
+						potentialRopes = [potentialRopes; averages(1), averages(2), size(cluster,1)];
 						cluster = [filteredData(i,:)];
 				else
 					cluster = [filteredData(i,:)];
