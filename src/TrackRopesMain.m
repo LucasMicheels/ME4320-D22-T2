@@ -4,8 +4,8 @@ clear;
 
 
 % Setup user variables
-sensorPosX = 900;
-sensorPosY = 50;
+sensorPosX = 860;
+sensorPosY = 10;
 elevatorDimensionsX = 990;
 elevatorDimensionsY = 1160;
 numRopes = 2;
@@ -45,7 +45,7 @@ for f = 1:lastFrame
 	else
 		ropeSet.assignRopes(singularPoints)
 	end
-    pause(10);
+    pause(2);
 end
 
 % FOR DEBUGGING ONLY
