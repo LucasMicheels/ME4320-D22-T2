@@ -15,17 +15,22 @@ frame = Frame;
 frame.setFrame(sensorPosX, sensorPosY, elevatorDimensionsX, elevatorDimensionsY, numRopes);
 
 % Main script
-rawData = frame.loadData('New System test 4-1.xlsx');
+purerawData = frame.manualLoadData('A2M8_concrete_Team2_close_straight_wall_test.xlsx');
+figure(1)
+frame.elevatorPlotter(purerawData, "pure Raw Data");
+rawData = frame.loadData('A2M8_concrete_Team2_close_straight_wall_test.xlsx');
+figure(2)
+frame.elevatorPlotter(rawData, "trans Raw Data");
 lastFrame = max(rawData(:, 3));
 
-figure(1)
-for f = 1:lastFrame
-	[filteredData, dataToRemove] = frame.wallFilteringDIMENSIONS(rawData, f);
-	rawData(1:dataToRemove, :) = [];
-	singularPoints = frame.mergeDataPoints(filteredData);
-	frame.elevatorPlotter(singularPoints, "Only Ropes");
-    pause(0.1);
-end
+% figure(1)
+% for f = 1:lastFrame
+% 	[filteredData, dataToRemove] = frame.wallFilteringDIMENSIONS(rawData, f);
+% 	rawData(1:dataToRemove, :) = [];
+% 	singularPoints = frame.mergeDataPoints(filteredData);
+% 	frame.elevatorPlotter(singularPoints, "Only Ropes");
+%     pause(0.1);
+% end
 
 % FOR DEBUGGING ONLY
 disp("debugging section")
