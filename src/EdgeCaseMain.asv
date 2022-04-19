@@ -18,12 +18,7 @@ sensorPosX = 140;
 % purerawData = frame.manualLoadData('A2M8_concrete_Team2_close_straight_wall_test.xlsx');
 % figure(1)
 % frame.elevatorPlotter(purerawData, "pure Raw Data");
-% A2M8 rplidar rope to sensor x 81cm   rope to sensor y 88cm
-% concrete to sensor x 65cm      rope to sensor x 63cm     ropeto sensor y
-% 25cm
-% A1M8 rplidar  test 1 uses same as test two of last     test 2 84cm sensor
-% concrete    82cm rope to sensor     38cm rope to sensor       wood to
-% sensor 92cm       
+% A2M8 rplidar rope to sensor x 81cm   rope to sensor y 88cm         
 
 rawData = frame.justloadrawData('Cardboard Test.xlsx');
 figure(2)
