@@ -45,7 +45,7 @@ for f = 1:lastFrame
 	else
 		ropeSet.assignRopes(singularPoints)
 	end
-    pause(10);
+    pause(2);
 end
 
 % FOR DEBUGGING ONLY

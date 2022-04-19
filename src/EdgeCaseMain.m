@@ -15,10 +15,10 @@ frame = Frame;
 frame.setFrame(sensorPosX, sensorPosY, elevatorDimensionsX, elevatorDimensionsY, numRopes);
 
 % Main script
-purerawData = frame.manualLoadData('A2M8_concrete_Team2_close_straight_wall_test.xlsx');
-figure(1)
-frame.elevatorPlotter(purerawData, "pure Raw Data");
-rawData = frame.loadData('A2M8_concrete_Team2_close_straight_wall_test.xlsx');
+% purerawData = frame.manualLoadData('A2M8_concrete_Team2_close_straight_wall_test.xlsx');
+% figure(1)
+% frame.elevatorPlotter(purerawData, "pure Raw Data");
+rawData = frame.justloadrawData('Cardboard Test.xlsx');
 figure(2)
 frame.elevatorPlotter(rawData, "trans Raw Data");
 lastFrame = max(rawData(:, 3));
