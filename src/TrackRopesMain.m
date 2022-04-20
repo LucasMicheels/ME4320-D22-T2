@@ -29,6 +29,9 @@ lastFrame = max(rawData(:, 3));
 
 for f = 1:lastFrame
 	[filteredData, dataToRemove] = frame.wallFilteringDIMENSIONS(rawData, f);
+	f3 = figure(5);
+	clf(f3)
+	frame.elevatorPlotter(rawData(1:dataToRemove, :), "Raw Frame Data")
 	rawData(1:dataToRemove, :) = [];
 	f1 = figure(3);
 	clf(f1)
@@ -45,7 +48,7 @@ for f = 1:lastFrame
 	else
 		ropeSet.assignRopes(singularPoints)
 	end
-    pause(2);
+    pause(1);
 end
 
 % FOR DEBUGGING ONLY
