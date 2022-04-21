@@ -29,16 +29,16 @@ lastFrame = max(rawData(:, 3));
 
 for f = 1:lastFrame
 	[filteredData, dataToRemove] = frame.wallFilteringDIMENSIONS(rawData, f);
-	f3 = figure(5);
-	clf(f3)
-	frame.elevatorPlotter(rawData(1:dataToRemove, :), "Raw Frame Data")
-	rawData(1:dataToRemove, :) = [];
 	f1 = figure(3);
 	clf(f1)
-	frame.elevatorPlotter(filteredData, "Filtered Data")
-	singularPoints = frame.mergeDataPoints(filteredData);
+	frame.elevatorPlotter(rawData(1:dataToRemove, :), "Raw Frame Data")
+	rawData(1:dataToRemove, :) = [];
 	f2 = figure(4);
 	clf(f2)
+	frame.elevatorPlotter(filteredData, "Filtered Data")
+	singularPoints = frame.mergeDataPoints(filteredData);
+	f3 = figure(5);
+	clf(f3)
 	frame.elevatorPlotter(singularPoints, "Only Ropes");
 
 	if f > 1

@@ -5,6 +5,7 @@ classdef Ropes < handle
 		previousFrameRopes    % n x 7 matrix; [x(mm), y(mm), velocityX(mm/s), velocityY(mm/s), accelerationX(mm^2/s), accelerationY(mm^2/s), isHoistRope?]
 		timeBetweenFrames     % time in seconds between frames
 		numRopes              % expected number of ropes
+		skippedScans = 0;     % number of scans skipped over
     end
     
     methods
@@ -16,6 +17,12 @@ classdef Ropes < handle
 		function setRopes(obj, numRopes, time)
 			obj.ropes = zeros(numRopes, 7);
 			obj.previousFrameRopes = zeros(numRopes, 7);
+			for i = 1:numRopes
+				for j = 1:7
+					obj.ropes(i,j) = -1;
+					obj.previousFrameRopes = -1;
+				end
+			end
 			obj.timeBetweenFrames = time;
 			obj.numRopes = numRopes;
 		end
@@ -49,11 +56,32 @@ classdef Ropes < handle
 				
 				% sets up the reference table for the possible objects;
 				% need to figure out field of view logic
-				for i = 1:obj.numRopes
-					radius = 100; % in mm
-					for j = 1:size(currentFrame,1)
-                		if radius^2 >= (obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2
-							referenceTable(i, j) = 1;
+				deltaTime = obj.timeBetweenFrames * (1 + obj.skippedScans);
+				if obj.ropes(1, 1) >= 0
+					reducedSearchRadius = 30;   % in mm
+					for i = 1:obj.numRopes
+						for j = 1:obj.numRopes
+							ropeDistance = sqrt((obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2);
+							ropeVelocity = ropeDistance / deltaTime;
+							previousVelocity = sqrt((obj.ropes(i, 3))^2 + (obj.ropes(i, 4))^2);
+							ropeAcceleration = (previousVelocity - ropeVelocity) / deltaTime;
+							unitVector = [currentFrame(j, 1) - obj.ropes(i, 1), currentFrame(j, 2) - obj.ropes(i, 2)] / ropeDistance;
+							
+							kinematicDistance = previousVelocity * deltaTime + 0.5 * ropeAcceleration * (deltaTime)^2;
+							positionEstimate = unitVector * kinematicDistance;
+
+                			if reducedSearchRadius^2 >= (positionEstimate(1) - currentFrame(j, 1))^2 + (positionEstimate(2) - currentFrame(j, 2))^2
+								referenceTable(i, j) = 1;
+							end
+						end
+					end
+				else
+					for i = 1:obj.numRopes
+						radius = 1000; % in mm
+						for j = 1:obj.numRopes
+                			if radius^2 >= (obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2
+								referenceTable(i, j) = 1;
+							end
 						end
 					end
 				end
