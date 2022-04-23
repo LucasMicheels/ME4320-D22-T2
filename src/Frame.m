@@ -13,7 +13,7 @@ classdef Frame < handle
 		% calculations
 		axisPadding = 100;               % in mm
 		clusterPadding = 20;             % in mm
-		sensorRotationCorrection = -2;   % in degrees; positive is clockwise rotation
+		sensorRotationCorrection = -90;   % in degrees; positive is clockwise rotation
 		wallFilteringPadding = 20;       % in mm
     end
     
@@ -59,12 +59,13 @@ classdef Frame < handle
         			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 170, angle(i) <= 92)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						if and(angle(i - 1) > 350, angle(i) <= 10)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             sweep = sweep + 1;
 						end
 					end
 					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
 				end
+				disp(i/rows * 100 + "% data loaded")
 			end
             
             clear data timeLocation distanceLocation angleLocation; 
@@ -206,7 +207,32 @@ classdef Frame < handle
 		% cartesian; assuming input data has form [x, y, ...]
 		function elevatorPlotter(obj, data, graphTitle)
 			try
-				plot(data(:, 1), data(:, 2), 'o')
+				if size(data, 1) < 10
+					hold on
+					x = data(:,1);
+					y = data(:,2);
+					c = 1;
+					for i = 1:size(data, 1)
+						switch c
+							case 1
+								plot(x(i),y(i), 'ob');
+							case 2
+								plot(x(i),y(i), 'or');
+							case 3 
+								plot(x(i),y(i), 'og');
+							case 4
+								plot(x(i),y(i), 'oy');
+						end
+						if c < 4
+							c = c + 1;
+						else
+							c = 1;
+						end
+					end
+					hold off
+				else
+					plot(data(:, 1), data(:, 2), 'o')
+				end
 				title("Graph of " + graphTitle)
 				axis([-obj.axisPadding, obj.eleDimX + obj.axisPadding, -obj.axisPadding, obj.eleDimY + obj.axisPadding])
 				xlabel("x (mm)") 

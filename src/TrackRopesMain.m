@@ -4,11 +4,11 @@ clear;
 
 
 % Setup user variables
-sensorPosX = 860;
-sensorPosY = 10;
-elevatorDimensionsX = 990;
-elevatorDimensionsY = 1160;
-numRopes = 2;
+sensorPosX = 1160;
+sensorPosY = 160;
+elevatorDimensionsX = 2030;
+elevatorDimensionsY = 2030;
+numRopes = 1;
 timeBetweenFrames = 0.1;
 
 % Setup classes
@@ -18,10 +18,10 @@ ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
-purerawData = frame.justloadrawData('R2000-2CableCorn-C1P2-C2P3.xlsx');
+purerawData = frame.justloadrawData('4.23.22 Test 1 - 1 Rope Swinging.xlsx');
 figure(1)
 frame.elevatorPlotter(purerawData, "pure Raw Data");
-rawData = frame.loadData('R2000-2CableCorn-C1P2-C2P3.xlsx');
+rawData = frame.loadData('4.23.22 Test 1 - 1 Rope Swinging.xlsx');
 figure(2)
 frame.elevatorPlotter(rawData, "trans Raw Data");
 lastFrame = max(rawData(:, 3));
