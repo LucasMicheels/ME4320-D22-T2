@@ -18,9 +18,9 @@ ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
-rawData = frame.loadData('4.23.22 Test 4 - 2 Ropes hitting edge of walls.xlsx');
+rawData = frame.loadData('4.23.22 Test 3 - 2 Ropes crossing each other twice.xlsx');
 figure(1)
-frame.elevatorPlotter(rawData, "trans Raw Data");
+frame.elevatorPlotter(rawData, "Complete Raw Data");
 
 lastFrame = max(rawData(:, 3));
 allKinematics = zeros((numRopes * lastFrame), 7);
@@ -37,9 +37,7 @@ for f = 1:lastFrame
 	frame.elevatorPlotter(filteredData, "Filtered Data")
 	singularPoints = frame.mergeDataPoints(filteredData);
 	f3 = figure(4);
-	clf(f3)
-	frame.elevatorPlotter(singularPoints, "Only Ropes");
-
+	
 	if f > 1
 		ropeSet.trackRope(singularPoints)
 		ropeSet.calKinematics();
@@ -47,10 +45,14 @@ for f = 1:lastFrame
 		for i = 1:numRopes
 			allKinematics(((f - 1) * numRopes) + i, :) = currentKinematics(i, :);
 		end
+		clf(f3)
+		frame.elevatorPlotter(currentKinematics, "Only Ropes");
 	else
 		ropeSet.assignRopes(singularPoints)
+		clf(f3)
+		frame.elevatorPlotter(singularPoints, "Only Ropes - First Frame");
 	end
-    pause(1); 
+    pause(1);
 end
 
 % FOR DEBUGGING ONLY
