@@ -49,10 +49,9 @@ classdef Frame < handle
             angle = table2array(angle);
             angle = str2double(angle);
 			[rows, ~] = size(angle);
-			x = [];
-			y = [];
-			raw_data = [];
+			raw_data = zeros(size(angle,1), 3);
 			sweep = 1;
+			j = 1;
 			for i = 1:rows
 				if distance(i) >= 0
 					xt = ((distance(i) + 18.863) / 1.0095) * cosd(angle(i));     % adds bias of the sensor
@@ -63,13 +62,16 @@ classdef Frame < handle
                             sweep = sweep + 1;
 						end
 					end
-					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
+					raw_data(j, :) = [transCoord(1), transCoord(2), sweep];
+					j = j + 1;
+				else
+					raw_data(j, :) = [];
 				end
 				disp(i/rows * 100 + "% data loaded")
 			end
             
-            clear data timeLocation distanceLocation angleLocation; 
-            clear columnNames distance angle x y;
+            clear data distanceLocation angleLocation; 
+            clear columnNames distance angle;
 		end
 		
 		% Loads the raw data without any transformations
@@ -146,7 +148,7 @@ classdef Frame < handle
 		function [filteredDataDimensions, dataToRemove] = wallFilteringDIMENSIONS(obj, rawData, frame)
 			filteredDataDimensions = [];
 			dataToRemove = 0;
-			frameSeen = frame
+			frameSeen = frame;
 			while frameSeen == frame && size(rawData, 1) > 0  % will keep going through the loop until either it has seen all the data in a certain frame or if there are no more data to look through
 				if and(rawData(1, 1) <= obj.eleDimX - obj.wallFilteringPadding, and(rawData(1, 1) >= 0 + obj.wallFilteringPadding, and(rawData(1, 2) <= obj.eleDimY - obj.wallFilteringPadding, rawData(1, 2) >= 0 + obj.wallFilteringPadding)))
 					filteredDataDimensions = [filteredDataDimensions; rawData(1, :)];
