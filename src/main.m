@@ -26,11 +26,12 @@ lastFrame = max(rawData(:, 3));
 allKinematics = zeros((numRopes * lastFrame), 7);
 
 for f = 1:lastFrame
-	f
+	disp("Processing frame " + f + " out of " + lastFrame)
 	[filteredData, dataToRemove] = frame.wallFilteringDIMENSIONS(rawData, f);
 	f1 = figure(2);
 	clf(f1)
 	frame.elevatorPlotter(rawData(1:dataToRemove, :), "Raw Frame Data")
+    disp("Removing " + dataToRemove + " data points")
 	rawData(1:dataToRemove, :) = [];
 	f2 = figure(3);
 	clf(f2)
@@ -54,6 +55,9 @@ for f = 1:lastFrame
 	end
     pause(1);
 end
+
+figure(5)
+ropeSet.kinematicsPlotter(allKinematics, "Kinematics vs Time", elevatorDimensionsX, elevatorDimensionsY)
 
 % FOR DEBUGGING ONLY
 disp("debugging section")

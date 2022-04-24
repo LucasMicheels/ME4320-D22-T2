@@ -12,7 +12,7 @@ classdef Frame < handle
 		% properties related to tolerances of the program when doing
 		% calculations
 		axisPadding = 100;               % in mm
-		clusterPadding = 20;             % in mm
+		clusterPadding = 30;             % in mm
 		sensorRotationCorrection = -90;   % in degrees; positive is clockwise rotation
 		wallFilteringPadding = 20;       % in mm
     end
@@ -175,6 +175,9 @@ classdef Frame < handle
 			cluster = [filteredData(1,:)];
 			rows = size(filteredData, 1);
 			ropes = zeros(obj.expectedNumRopes,3);
+			for r = 1:size(ropes,1)
+				ropes(r,:) = [-1, -1, -1];
+			end
 			for i = 2:rows
                 if obj.clusterPadding^2 >= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2 %#ok<ALIGN> 
                     cluster = [cluster; filteredData(i,:)];
@@ -186,6 +189,22 @@ classdef Frame < handle
 					cluster = [filteredData(i,:)];
 				end
 			end
+			
+			minimalDataPoints = 5;
+			done = false;
+			f = 1;
+			% filtering tails out
+			while done == false
+				if potentialRopes(f, 3) < minimalDataPoints
+					potentialRopes(f, :) = [];
+					f = f - 1;
+				end
+				f = f + 1;
+				if f > size(potentialRopes,1)
+					done = true;
+				end
+			end
+			
             for p = 1:size(potentialRopes, 1)    % checks each potential rope
                 for r = 1:obj.expectedNumRopes   % checks each potential rope with the list of the top clusters (ropes list)
                     if potentialRopes(p,3) > ropes(r,3)  % looking to find/see if a potential rope has an entry that is better than one of the entries in the ropes list

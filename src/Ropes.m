@@ -6,6 +6,7 @@ classdef Ropes < handle
 		timeBetweenFrames     % time in seconds between frames
 		numRopes              % expected number of ropes
 		skippedScans = 0;     % number of scans skipped over
+		axisPadding = 100;
     end
     
     methods
@@ -163,9 +164,35 @@ classdef Ropes < handle
                 obj.ropes(i, 5) = (obj.ropes(i,3)-obj.previousFrameRopes(i,3))/obj.timeBetweenFrames;
                 obj.ropes(i, 6) = (obj.ropes(i,4)-obj.previousFrameRopes(i,4))/obj.timeBetweenFrames;
             end
+        end
+        
+        % graphs the kinematics of each rope over the entire set
+        function kinematicsPlotter(obj, data, graphTitle, elevatorDimensionX, elevatorDimensionY)
+			ropeVelX = [];
+			time = [];
+			hold on
+			for i = 1:obj.numRopes
+				for j = 1:obj.numRopes:size(data,1)
+					ropeVelX = [ropeVelX; data(j,3)];
+				end
+				for t = 1:(size(data,1) / obj.numRopes)
+					time = [time; (t - 1) * obj.timeBetweenFrames];
+				end
+				line = plot(time, ropeVelX);
+				line.LineWidth = 1;
+				line.Color = [0 0.5 0.5];
+				line.Marker = 'o';
+				line.MarkerEdgeColor = 'b';
+			end
+			hold off
+			title("Graph of " + graphTitle)
+			axis([-1, 7, -1200, 1200])
+			xlabel("Time (sec)")
+			ylabel("Velocity (mm/s)")
 		end
 
-
+		
+		
     end
 end
 
