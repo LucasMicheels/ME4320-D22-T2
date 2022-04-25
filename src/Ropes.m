@@ -52,16 +52,24 @@ classdef Ropes < handle
 		% currentFrame is in the form of a nx2 matrix which is the list of
 		% points of the current frame; updates the rope positions
 		function trackRope(obj, currentFrame)
-			if size(currentFrame,1) == obj.numRopes
-				referenceTable = zeros(obj.numRopes);
+			errorDataPoints = [];
+			for c = 1:size(currentFrame)
+				if currentFrame(c, 1) < 0 || currentFrame(c, 2) < 0
+					errorDataPoints = [errorDataPoints; currentFrame(c, :)];
+					currentFrame(c, :) = [];
+				end
+			end
+
+			if 1 == 1 % size(currentFrame,1) == obj.numRopes
+				referenceTable = zeros(obj.numRopes, size(currentFrame, 1));
 				
 				% sets up the reference table for the possible objects;
 				% need to figure out field of view logic
 				deltaTime = obj.timeBetweenFrames * (1 + obj.skippedScans);
-				if obj.ropes(1, 1) >= 0
-					reducedSearchRadius = 30;   % in mm
+				if obj.ropes(1, 5) >= 0
+					reducedSearchRadius = 20;   % in mm
 					for i = 1:obj.numRopes
-						for j = 1:obj.numRopes
+						for j = 1:size(currentFrame, 1)
 							ropeDistance = sqrt((obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2);
 							ropeVelocity = ropeDistance / deltaTime;
 							previousVelocity = sqrt((obj.ropes(i, 3))^2 + (obj.ropes(i, 4))^2);
@@ -69,7 +77,7 @@ classdef Ropes < handle
 							unitVector = [currentFrame(j, 1) - obj.ropes(i, 1), currentFrame(j, 2) - obj.ropes(i, 2)] / ropeDistance;
 							
 							kinematicDistance = previousVelocity * deltaTime + 0.5 * ropeAcceleration * (deltaTime)^2;
-							positionEstimate = unitVector * kinematicDistance;
+							positionEstimate = unitVector * kinematicDistance + [obj.ropes(i, 1), obj.ropes(i, 2)];
 
                 			if reducedSearchRadius^2 >= (positionEstimate(1) - currentFrame(j, 1))^2 + (positionEstimate(2) - currentFrame(j, 2))^2
 								referenceTable(i, j) = 1;
@@ -79,7 +87,7 @@ classdef Ropes < handle
 				else
 					for i = 1:obj.numRopes
 						radius = 1000; % in mm
-						for j = 1:obj.numRopes
+						for j = 1:size(currentFrame,1)
                 			if radius^2 >= (obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2
 								referenceTable(i, j) = 1;
 							end
@@ -90,7 +98,7 @@ classdef Ropes < handle
 				% sets up the reference ropes and object numbers; goal is
 				% to find the newRopes which is an array from 1-5 with the
 				% number corresponding to the object for the index rope
-				newRopes = zeros(obj.numRopes, 1);
+				newRopes = zeros(size(currentFrame, 1), 1);
 				ropesLeft = [];
 				objectsLeft = [];
 				for i = 1:size(newRopes)
@@ -100,7 +108,10 @@ classdef Ropes < handle
 				end
 				objectPos = currentFrame;
 
-				for i = 1:obj.numRopes  % edit for loop to while loop so it keeps going until no changes to reference table has occurs after going through each rope
+				done = false;
+				iteration = 1;
+				i = 1;
+				while done == false
 					if sum(referenceTable(i,:)) == 1
 						for j = 1:obj.numRopes
 							if referenceTable(i, j) == 1
@@ -111,6 +122,18 @@ classdef Ropes < handle
 								break
 							end
 						end
+						iteration = 1;
+					else
+						iteration = iteration + 1;
+					end
+
+					i = i + 1;
+					if i > obj.numRopes
+						i = 1;
+					end
+
+					if iteration > obj.numRopes
+						done = true;
 					end
 				end
 
@@ -138,10 +161,32 @@ classdef Ropes < handle
 				% object positions
 				if min(newRopes) > 0                                   % double checks to make sure there are no issues with tracking the ropes
 					newRopePos = zeros(obj.numRopes, 7);
-					for i = 1:obj.numRopes
+					for i = 1:size(newRopePos, 1)
+						newRopePos(i, :) = [-1, -1, -1, -1, -1, -1, -1];
+					end
+
+					for i = 1:size(newRopes, 1)
 						newRopePos(i, 1) = objectPos(newRopes(i), 1);
 						newRopePos(i, 2) = objectPos(newRopes(i), 2);
 					end
+					
+					for i = 1:obj.numRopes
+						if min(newRopePos(i, 1)) < 0
+							ropeDistance = sqrt((obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2);
+							ropeVelocity = ropeDistance / deltaTime;
+							previousVelocity = sqrt((obj.ropes(i, 3))^2 + (obj.ropes(i, 4))^2);
+							ropeAcceleration = (previousVelocity - ropeVelocity) / deltaTime;
+							unitVector = [currentFrame(j, 1) - obj.ropes(i, 1), currentFrame(j, 2) - obj.ropes(i, 2)] / ropeDistance;
+							
+							kinematicDistance = previousVelocity * deltaTime + 0.5 * ropeAcceleration * (deltaTime)^2;
+							positionEstimate = unitVector * kinematicDistance + [obj.ropes(i, 1), obj.ropes(i, 2)];
+							velocityEstimate = unitVector * previousVelocity + unitVector * ropeAcceleration;
+							accelerationEstimate = unitVector * ropeAcceleration;
+
+							newRopePos(i, :) = [positionEstimate(1), positionEstimate(2), velocityEstimate(1), velocityEstimate(2), accelerationEstimate(1), accelerationEstimate(2)];
+						end
+					end
+
 					obj.updatePos(newRopePos)
 				else
 					disp("error in tracking ropes!")

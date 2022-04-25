@@ -174,10 +174,12 @@ classdef Frame < handle
 			potentialRopes = [];
 			cluster = [filteredData(1,:)];
 			rows = size(filteredData, 1);
+			
 			ropes = zeros(obj.expectedNumRopes,3);
 			for r = 1:size(ropes,1)
 				ropes(r,:) = [-1, -1, -1];
 			end
+
 			for i = 2:rows
                 if obj.clusterPadding^2 >= (filteredData(i, 1) - filteredData(i - 1, 1))^2 + (filteredData(i, 2) - filteredData(i - 1, 2))^2 %#ok<ALIGN> 
                     cluster = [cluster; filteredData(i,:)];
