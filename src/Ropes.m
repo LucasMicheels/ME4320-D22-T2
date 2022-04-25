@@ -70,11 +70,11 @@ classdef Ropes < handle
 					reducedSearchRadius = 20;   % in mm
 					for i = 1:obj.numRopes
 						for j = 1:size(currentFrame, 1)
-							ropeDistance = sqrt((obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2);
+							ropeDistance = sqrt((obj.previousFrameRopes(i, 1) - obj.ropes(j, 1))^2 + (obj.previousFrameRopes(i, 2) - obj.ropes(j, 2))^2);
 							ropeVelocity = ropeDistance / deltaTime;
 							previousVelocity = sqrt((obj.ropes(i, 3))^2 + (obj.ropes(i, 4))^2);
 							ropeAcceleration = (previousVelocity - ropeVelocity) / deltaTime;
-							unitVector = [currentFrame(j, 1) - obj.ropes(i, 1), currentFrame(j, 2) - obj.ropes(i, 2)] / ropeDistance;
+							unitVector = [obj.ropes(j, 1) - obj.previousFrameRopes(i, 1), obj.ropes(j, 2) - obj.previousFrameRopes(i, 2)] / ropeDistance;
 							
 							kinematicDistance = previousVelocity * deltaTime + 0.5 * ropeAcceleration * (deltaTime)^2;
 							positionEstimate = unitVector * kinematicDistance + [obj.ropes(i, 1), obj.ropes(i, 2)];
@@ -172,18 +172,18 @@ classdef Ropes < handle
 					
 					for i = 1:obj.numRopes
 						if min(newRopePos(i, 1)) < 0
-							ropeDistance = sqrt((obj.ropes(i, 1) - currentFrame(j, 1))^2 + (obj.ropes(i, 2) - currentFrame(j, 2))^2);
+							ropeDistance = sqrt((obj.previousFrameRopes(i, 1) - obj.ropes(j, 1))^2 + (obj.previousFrameRopes(i, 2) - obj.ropes(j, 2))^2);
 							ropeVelocity = ropeDistance / deltaTime;
 							previousVelocity = sqrt((obj.ropes(i, 3))^2 + (obj.ropes(i, 4))^2);
 							ropeAcceleration = (previousVelocity - ropeVelocity) / deltaTime;
-							unitVector = [currentFrame(j, 1) - obj.ropes(i, 1), currentFrame(j, 2) - obj.ropes(i, 2)] / ropeDistance;
+							unitVector = [obj.ropes(j, 1) - obj.previousFrameRopes(i, 1), obj.ropes(j, 2) - obj.previousFrameRopes(i, 2)] / ropeDistance;
 							
 							kinematicDistance = previousVelocity * deltaTime + 0.5 * ropeAcceleration * (deltaTime)^2;
 							positionEstimate = unitVector * kinematicDistance + [obj.ropes(i, 1), obj.ropes(i, 2)];
 							velocityEstimate = unitVector * previousVelocity + unitVector * ropeAcceleration;
 							accelerationEstimate = unitVector * ropeAcceleration;
 
-							newRopePos(i, :) = [positionEstimate(1), positionEstimate(2), velocityEstimate(1), velocityEstimate(2), accelerationEstimate(1), accelerationEstimate(2)];
+							newRopePos(i, :) = [positionEstimate(1), positionEstimate(2), velocityEstimate(1), velocityEstimate(2), accelerationEstimate(1), accelerationEstimate(2), 0];
 						end
 					end
 
@@ -213,21 +213,24 @@ classdef Ropes < handle
         
         % graphs the kinematics of each rope over the entire set
         function kinematicsPlotter(obj, data, graphTitle, elevatorDimensionX, elevatorDimensionY)
-			ropeVelX = [];
+			ropeX = [];
+			ropeY = [];
 			time = [];
 			hold on
-			for i = 1:obj.numRopes
+			for i = 1:1
 				for j = 1:obj.numRopes:size(data,1)
-					ropeVelX = [ropeVelX; data(j,3)];
+					ropeX = [ropeX; data(j,1)];
+					ropeY = [ropeX; data(j,2)];
 				end
 				for t = 1:(size(data,1) / obj.numRopes)
 					time = [time; (t - 1) * obj.timeBetweenFrames];
 				end
-				line = plot(time, ropeVelX);
-				line.LineWidth = 1;
-				line.Color = [0 0.5 0.5];
-				line.Marker = 'o';
-				line.MarkerEdgeColor = 'b';
+				line1 = plot(time, ropeX);
+				line2 = plot(time, ropeY);
+				line1.LineWidth = 1;
+				line1.Color = [0 0.5 0.5];
+				line1.Marker = 'o';
+				line1.MarkerEdgeColor = 'b';
 			end
 			hold off
 			title("Graph of " + graphTitle)
