@@ -8,7 +8,7 @@ sensorPosX = 1160;
 sensorPosY = 160;
 elevatorDimensionsX = 2030;
 elevatorDimensionsY = 2030;
-numRopes = 2;	
+numRopes = 2;
 timeBetweenFrames = 0.1;
 
 % Setup classes

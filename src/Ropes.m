@@ -235,7 +235,7 @@ classdef Ropes < handle
 			title("Graph of " + graphTitle)
 			axis([-1, 7, -1200, 1200])
 			xlabel("Time (sec)")
-			ylabel("Velocity (mm/s)")
+			ylabel("X Position (mm)")
 		end
 
 		
