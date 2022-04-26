@@ -137,6 +137,58 @@ classdef Frame < handle
 					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
 				end
 			end
+        end
+        
+        % Manually Loading R2000 Data
+		function raw_data = manualLoadR2000Data(obj, excel_file)
+			data = readtable(excel_file);
+			data = table2array(data);
+			distance = data(2:end,6);
+			angle = data(2:end,5);
+			[rows, ~] = size(angle);
+			x = [];
+			y = [];
+			raw_data = [];
+			sweep = 1;
+			for i = 1:rows
+				if distance(i) >= 0
+					xt = distance(i) * cosd(angle(i));     % adds bias of the sensor
+        			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
+					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
+                    if i > 1
+						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            sweep = sweep + 1;
+						end
+					end
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
+				end
+			end
+        end
+        
+        % Manually Loading A2M8 Sensor Data
+        function raw_data = manualLoadA2M8Data(obj, txt_file)
+			data = fscanf(txt_file);
+			data = table2array(data);
+			distance = data(2:end,6);
+			angle = data(2:end,5);
+			[rows, ~] = size(angle);
+			x = [];
+			y = [];
+			raw_data = [];
+			sweep = 1;
+			for i = 1:rows
+				if distance(i) >= 0
+					xt = distance(i) * cosd(angle(i));     % adds bias of the sensor
+        			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
+					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
+                    if i > 1
+						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            sweep = sweep + 1;
+						end
+					end
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
+				end
+			end
 		end
 
 		% code to filter walls based on dimensions; rawData is

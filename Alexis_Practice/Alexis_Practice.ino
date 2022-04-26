@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h> //header file of software serial port 
 SoftwareSerial Serial1(2,3);
-//SoftwareSerial Serial2(4,5);
+SoftwareSerial Serial2(4,5);
 
 // ------ Variables -------
 int dist; //actual distance measurements of LiDAR 

@@ -1,0 +1,1 @@
+fileID = fscanf('A2M8_static_mid_point5.txt','%s %f %s %f');

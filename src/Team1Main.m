@@ -18,7 +18,7 @@ ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
-rawData = frame.loadData('4.23.22 Test 3 - 2 Ropes crossing each other twice.xlsx');
+rawData = frame.manualLoadR2000Data('R2000-P5MidMvmtPerp.xlsx');
 
 lastFrame = max(rawData(:, 3));
 data = ["Distance", "Number of Data Points"];
@@ -40,6 +40,6 @@ for f = 1:lastFrame
 end
 
 data
-mean(data)
+%mean(data)
 
 disp("program completed successfully")
