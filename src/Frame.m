@@ -223,7 +223,7 @@ classdef Frame < handle
                     end
 				end
 			end
-			points = [ropes(:, 1), ropes(:, 2)];
+			points = [ropes(:, 1), ropes(:, 2), ropes(:, 3)];
 		end
         
 		% super basic plotter; just enter the filtered data and it plots in

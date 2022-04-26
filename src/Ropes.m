@@ -6,7 +6,6 @@ classdef Ropes < handle
 		timeBetweenFrames     % time in seconds between frames
 		numRopes              % expected number of ropes
 		skippedScans = 0;     % number of scans skipped over
-		axisPadding = 100;
     end
     
     methods
@@ -226,7 +225,7 @@ classdef Ropes < handle
 					time = [time; (t - 1) * obj.timeBetweenFrames];
 				end
 				line1 = plot(time, ropeX);
-				line2 = plot(time, ropeY);
+				%line2 = plot(time, ropeY);
 				line1.LineWidth = 1;
 				line1.Color = [0 0.5 0.5];
 				line1.Marker = 'o';
