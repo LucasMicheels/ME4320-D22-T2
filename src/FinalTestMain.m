@@ -25,6 +25,7 @@ frame.elevatorPlotter(rawData, "Complete Raw Data");
 
 lastFrame = max(rawData(:, 3));
 allKinematics = zeros((numRopes * lastFrame), 7);
+skippedFrames = 0;
 
 for f = 1:lastFrame
 	disp("Processing frame " + f + " out of " + lastFrame)
@@ -41,14 +42,20 @@ for f = 1:lastFrame
 	f3 = figure(4);
 	
 	if f > 1
-		ropeSet.trackRope(singularPoints)
-		ropeSet.calKinematics();
-		currentKinematics = ropeSet.getRope()
-		for i = 1:numRopes
-			allKinematics(((f - 1) * numRopes) + i, :) = currentKinematics(i, :);
+		if min(min(singularPoints(:, 1:2), [], 1), [], 'all') >= 0
+			ropeSet.trackRope(singularPoints)
+			ropeSet.calKinematics();
+			currentKinematics = ropeSet.getRope()
+			ropeSet.setSkippedFrames(0);
+			for i = 1:numRopes
+				allKinematics(((f - 1) * numRopes) + i, :) = currentKinematics(i, :);
+			end
+			clf(f3)
+			frame.elevatorPlotter(currentKinematics, "Only Ropes");
+		else
+			skippedFrames = skippedFrames + 1;
+			ropeSet.setSkippedFrames(skippedFrames);
 		end
-		clf(f3)
-		frame.elevatorPlotter(currentKinematics, "Only Ropes");
 	else
 		ropeSet.assignRopes(singularPoints)
 		clf(f3)
