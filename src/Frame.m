@@ -12,7 +12,7 @@ classdef Frame < handle
 		% properties related to tolerances of the program when doing
 		% calculations
 		axisPadding = 100;               % in mm
-		clusterPadding = 30;             % in mm
+		clusterPadding = 20;             % in mm
 		sensorRotationCorrection = -90;   % in degrees; positive is clockwise rotation
 		wallFilteringPadding = 20;       % in mm
     end
@@ -23,12 +23,13 @@ classdef Frame < handle
 		end
 
 		% sets the user input properties of the frame
-		function setFrame(obj, x, y, eleX, eleY, numRopes)
+		function setFrame(obj, x, y, eleX, eleY, numRopes, sensorRotationCorrection)
 			obj.posX = x;
 			obj.posY = y;
 			obj.eleDimX = eleX;
 			obj.eleDimY = eleY;
 			obj.expectedNumRopes = numRopes;
+			obj.sensorRotationCorrection = sensorRotationCorrection;
 		end
 
 		% loads the data into proper format; x and y are
@@ -244,7 +245,7 @@ classdef Frame < handle
 				end
 			end
 			
-			minimalDataPoints = 5;
+			minimalDataPoints = 3;
 			done = false;
 			f = 1;
 			% filtering tails out

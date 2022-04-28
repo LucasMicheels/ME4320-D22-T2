@@ -4,13 +4,13 @@ clear;
 
 
 % Setup user variables
-sensorPosX = 1160;
-sensorPosY = 160;
+sensorPosX = 1105;
+sensorPosY = 35;
 elevatorDimensionsX = 2030;
 elevatorDimensionsY = 2030;
 numRopes = 2;
 timeBetweenFrames = 0.1;
-sensorRotationCorrection = -90;
+sensorRotationCorrection = 180;
 
 % Setup classes
 frame = Frame;
@@ -55,9 +55,9 @@ for f = 1:lastFrame
 		frame.elevatorPlotter(singularPoints, "Only Ropes - First Frame");
 	end
 	
-	if f == 11
-		stopHere = input("about to start frame 23")
-	end
+% 	if f == 11
+% 		stopHere = input("about to start frame 23")
+% 	end
     pause(1);
 end
 
