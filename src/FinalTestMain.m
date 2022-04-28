@@ -10,7 +10,7 @@ elevatorDimensionsX = 2030;
 elevatorDimensionsY = 2030;
 numRopes = 2;
 timeBetweenFrames = 0.1;
-sensorRotationCorrection = 180;
+sensorRotationCorrection = -177;
 
 % Setup classes
 frame = Frame;
@@ -19,7 +19,7 @@ ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
-rawData = frame.loadData('4.23.22 Test 3 - 2 Ropes crossing each other twice.xlsx');
+rawData = frame.loadData('R2000-TestRig-Wall-Moving3.xlsx');
 figure(1)
 frame.elevatorPlotter(rawData, "Complete Raw Data");
 
@@ -65,7 +65,7 @@ for f = 1:lastFrame
 % 	if f == 11
 % 		stopHere = input("about to start frame 23")
 % 	end
-    pause(1);
+%     pause(1);
 end
 
 %figure(5)

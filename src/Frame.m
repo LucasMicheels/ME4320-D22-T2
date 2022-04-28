@@ -12,7 +12,7 @@ classdef Frame < handle
 		% properties related to tolerances of the program when doing
 		% calculations
 		axisPadding = 100;               % in mm
-		clusterPadding = 20;             % in mm
+		clusterPadding = 30;             % in mm
 		sensorRotationCorrection = -90;   % in degrees; positive is clockwise rotation
 		wallFilteringPadding = 20;       % in mm
     end

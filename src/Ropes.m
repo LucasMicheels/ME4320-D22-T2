@@ -6,6 +6,7 @@ classdef Ropes < handle
 		timeBetweenFrames     % time in seconds between frames
 		numRopes              % expected number of ropes
 		skippedScans = 0;     % number of scans skipped over
+		TotalErrors = 0;      % total errors in a dataset
     end
     
     methods
@@ -194,6 +195,7 @@ classdef Ropes < handle
 					obj.updatePos(newRopePos)
 				else
 					disp("error in tracking ropes!")
+					obj.TotalErrors = obj.TotalErrors + 1;
 				end
 			else
 				disp("error in tracking ropes")
