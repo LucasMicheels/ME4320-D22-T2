@@ -26,6 +26,7 @@ frame.elevatorPlotter(rawData, "Complete Raw Data");
 lastFrame = max(rawData(:, 3));
 allKinematics = zeros((numRopes * lastFrame), 7);
 skippedFrames = 0;
+listOfSkippedFrames = [];
 
 for f = 1:lastFrame
 	disp("Processing frame " + f + " out of " + lastFrame)
@@ -55,6 +56,7 @@ for f = 1:lastFrame
 		else
 			skippedFrames = skippedFrames + 1;
 			ropeSet.setSkippedFrames(skippedFrames);
+			listOfSkippedFrames = [listOfSkippedFrames; f];
 		end
 	else
 		ropeSet.assignRopes(singularPoints)
@@ -67,6 +69,11 @@ for f = 1:lastFrame
 % 	end
 %     pause(1);
 end
+
+disp(skippedFrames)
+disp(listOfSkippedFrames)
+disp(obj.getTotalErrors)
+
 
 %figure(5)
 %ropeSet.kinematicsPlotter(allKinematics, "Kinematics vs Time", elevatorDimensionsX, elevatorDimensionsY)

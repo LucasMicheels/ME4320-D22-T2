@@ -44,6 +44,11 @@ classdef Ropes < handle
 			obj.skippedScans = numFrames;
 		end
 
+		% get TotalErrors number
+		function errors = getTotalErrors(obj)
+			errors = obj.TotalErrors;
+		end
+
 		% arbitrarily assigns points to the ropes property
 		function assignRopes(obj, ropePoints)
 			for i = 1:size(ropePoints,1)
