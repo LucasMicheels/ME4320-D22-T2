@@ -72,7 +72,7 @@ end
 
 disp(skippedFrames)
 disp(listOfSkippedFrames)
-disp(obj.getTotalErrors)
+disp(ropeSet.getTotalErrors)
 
 
 %figure(5)
