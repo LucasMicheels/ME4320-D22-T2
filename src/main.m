@@ -8,12 +8,13 @@ sensorPosX = 1160;
 sensorPosY = 160;
 elevatorDimensionsX = 2030;
 elevatorDimensionsY = 2030;
-numRopes = 2;	
+numRopes = 2;
 timeBetweenFrames = 0.1;
+sensorRotationCorrection = -90;
 
 % Setup classes
 frame = Frame;
-frame.setFrame(sensorPosX, sensorPosY, elevatorDimensionsX, elevatorDimensionsY, numRopes);
+frame.setFrame(sensorPosX, sensorPosY, elevatorDimensionsX, elevatorDimensionsY, numRopes, sensorRotationCorrection);
 ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
@@ -53,11 +54,15 @@ for f = 1:lastFrame
 		clf(f3)
 		frame.elevatorPlotter(singularPoints, "Only Ropes - First Frame");
 	end
+	
+	if f == 11
+		stopHere = input("about to start frame 23")
+	end
     pause(1);
 end
 
-figure(5)
-ropeSet.kinematicsPlotter(allKinematics, "Kinematics vs Time", elevatorDimensionsX, elevatorDimensionsY)
+%figure(5)
+%ropeSet.kinematicsPlotter(allKinematics, "Kinematics vs Time", elevatorDimensionsX, elevatorDimensionsY)
 
 % FOR DEBUGGING ONLY
 disp("debugging section")

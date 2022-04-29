@@ -13,7 +13,7 @@ classdef Frame < handle
 		% calculations
 		axisPadding = 100;               % in mm
 		clusterPadding = 30;             % in mm
-		sensorRotationCorrection = -90;   % in degrees; positive is clockwise rotation
+		sensorRotationCorrection = -90;  % in degrees; positive is clockwise rotation
 		wallFilteringPadding = 20;       % in mm
     end
     
@@ -23,17 +23,19 @@ classdef Frame < handle
 		end
 
 		% sets the user input properties of the frame
-		function setFrame(obj, x, y, eleX, eleY, numRopes)
+		function setFrame(obj, x, y, eleX, eleY, numRopes, sensorRotationCorrection, clusterRadius)
 			obj.posX = x;
 			obj.posY = y;
 			obj.eleDimX = eleX;
 			obj.eleDimY = eleY;
 			obj.expectedNumRopes = numRopes;
+			obj.sensorRotationCorrection = sensorRotationCorrection;
+			obj.clusterPadding = clusterRadius;
 		end
 
 		% loads the data into proper format; x and y are
 		% in mm; Combine Values to Matrix [x, y, time]
-		function raw_data = loadData(obj, excel_file_name)
+		function raw_data = load2R000Data(obj, excel_file_name)
             data = readtable(excel_file_name);
             columnNames = upper(data.Properties.VariableNames);
             
@@ -58,7 +60,7 @@ classdef Frame < handle
         			yt = ((distance(i) + 18.863) / 1.0095) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 350, angle(i) <= 10)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						if and(angle(i - 1) > 350, angle(i) <= 10)
                             sweep = sweep + 1;
 						end
 					end
@@ -101,7 +103,7 @@ classdef Frame < handle
         			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						if and(angle(i - 1) > 310, angle(i) <= 1)
                             sweep = sweep + 1;
 						end
 					end
@@ -130,7 +132,7 @@ classdef Frame < handle
         			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						if and(angle(i - 1) > 310, angle(i) <= 1)
                             sweep = sweep + 1;
 						end
 					end
@@ -156,7 +158,7 @@ classdef Frame < handle
         			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						if and(angle(i - 1) > 310, angle(i) <= 1)
                             sweep = sweep + 1;
 						end
 					end
@@ -182,7 +184,7 @@ classdef Frame < handle
         			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
 					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
                     if i > 1
-						if and(angle(i - 1) > 310, angle(i) <= 1)        % sets which sweep a data point belongs to SET TO 350 WHEN DONE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						if and(angle(i - 1) > 310, angle(i) <= 1)
                             sweep = sweep + 1;
 						end
 					end
@@ -190,6 +192,31 @@ classdef Frame < handle
 				end
 			end
 		end
+
+		function raw_data = loadA1M8Data(obj, excel_file)
+			data = readtable(excel_file);
+			data = table2array(data);
+			distance = data(2:end,2);
+			angle = data(2:end,1);
+			[rows, ~] = size(angle);
+			x = [];
+			y = [];
+			raw_data = [];
+			sweep = 1;
+			for i = 1:rows
+				if distance(i) >= 0
+					xt = distance(i) * cosd(angle(i));     % adds bias of the sensor
+        			yt = distance(i) * sind(angle(i));     % adds bias of the sensor
+					transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
+                    if i > 1
+						if and(angle(i - 1) > 310, angle(i) <= 1)
+                            sweep = sweep + 1;
+						end
+					end
+					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
+				end
+			end
+        end
 
 		% code to filter walls based on dimensions; rawData is
 		% the raw data; the 
@@ -244,7 +271,10 @@ classdef Frame < handle
 				end
 			end
 			
-			minimalDataPoints = 5;
+			averages = mean(cluster);
+			potentialRopes = [potentialRopes; averages(1), averages(2), size(cluster,1)];
+
+			minimalDataPoints = 3;
 			done = false;
 			f = 1;
 			% filtering tails out

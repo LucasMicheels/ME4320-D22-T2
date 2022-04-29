@@ -6,6 +6,7 @@ classdef Ropes < handle
 		timeBetweenFrames     % time in seconds between frames
 		numRopes              % expected number of ropes
 		skippedScans = 0;     % number of scans skipped over
+		TotalErrors = 0;      % total errors in a dataset
     end
     
     methods
@@ -38,6 +39,16 @@ classdef Ropes < handle
 			obj.ropes = ropes;
 		end
 
+		% sets skippedFrames number
+		function setSkippedFrames(obj, numFrames)
+			obj.skippedScans = numFrames;
+		end
+
+		% get TotalErrors number
+		function errors = getTotalErrors(obj)
+			errors = obj.TotalErrors;
+		end
+
 		% arbitrarily assigns points to the ropes property
 		function assignRopes(obj, ropePoints)
 			for i = 1:size(ropePoints,1)
@@ -66,7 +77,7 @@ classdef Ropes < handle
 				% need to figure out field of view logic
 				deltaTime = obj.timeBetweenFrames * (1 + obj.skippedScans);
 				if obj.ropes(1, 5) >= 0
-					reducedSearchRadius = 20;   % in mm
+					reducedSearchRadius = 20 + (obj.skippedScans * 80);   % in mm
 					for i = 1:obj.numRopes
 						for j = 1:size(currentFrame, 1)
 							ropeDistance = sqrt((obj.previousFrameRopes(i, 1) - obj.ropes(j, 1))^2 + (obj.previousFrameRopes(i, 2) - obj.ropes(j, 2))^2);
@@ -189,6 +200,7 @@ classdef Ropes < handle
 					obj.updatePos(newRopePos)
 				else
 					disp("error in tracking ropes!")
+					obj.TotalErrors = obj.TotalErrors + 1;
 				end
 			else
 				disp("error in tracking ropes")
@@ -235,7 +247,7 @@ classdef Ropes < handle
 			title("Graph of " + graphTitle)
 			axis([-1, 7, -1200, 1200])
 			xlabel("Time (sec)")
-			ylabel("Velocity (mm/s)")
+			ylabel("X Position (mm)")
 		end
 
 		
