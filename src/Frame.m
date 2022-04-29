@@ -166,11 +166,11 @@ classdef Frame < handle
         end
         
         % Manually Loading A2M8 Sensor Data
-        function raw_data = manualLoadA2M8Data(obj, txt_file)
-			data = fscanf(txt_file);
+        function raw_data = manualLoadA2M8Data(obj, excel_file)
+			data = readtable(excel_file);
 			data = table2array(data);
-			distance = data(2:end,6);
-			angle = data(2:end,5);
+			distance = data(2:end,2);
+			angle = data(2:end,1);
 			[rows, ~] = size(angle);
 			x = [];
 			y = [];

@@ -18,7 +18,7 @@ ropeSet = Ropes;
 ropeSet.setRopes(numRopes, timeBetweenFrames)
 
 % Main script
-rawData = frame.manualLoadR2000Data('R2000-P5MidMvmtPerp.xlsx');
+rawData = frame.manualLoadA2M8Data('A2M8_Team2_perpendicular_far_cinder.xlsx');
 
 lastFrame = max(rawData(:, 3));
 data = ["Distance", "Number of Data Points"];
