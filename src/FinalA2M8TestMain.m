@@ -11,7 +11,7 @@ elevatorDimensionsY = 2030;
 numRopes = 2;
 timeBetweenFrames = 0.1;
 sensorRotationCorrection = -126;
-clusterRadius = 30;
+clusterRadius = 100;
 
 % Setup classes
 frame = Frame;
@@ -65,6 +65,7 @@ for f = 1:lastFrame
 		clf(f3)
 		frame.elevatorPlotter(singularPoints, "Only Ropes - First Frame");
 	end
+	pause(1)
 end
 
 disp(skippedFrames)

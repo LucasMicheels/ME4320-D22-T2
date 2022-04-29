@@ -276,7 +276,7 @@ classdef Frame < handle
 				potentialRopes = [potentialRopes; averages(1), averages(2), size(cluster,1)];
 			end
 
-			minimalDataPoints = 3;
+			minimalDataPoints = 0;
 			done = false;
 			f = 1;
 			% filtering tails out
