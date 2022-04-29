@@ -271,10 +271,8 @@ classdef Frame < handle
 				end
 			end
 			
-			if size(cluster,1) > 1
-				averages = mean(cluster);
-				potentialRopes = [potentialRopes; averages(1), averages(2), size(cluster,1)];
-			end
+			averages = mean(cluster);
+			potentialRopes = [potentialRopes; averages(1), averages(2), size(cluster,1)];
 
 			minimalDataPoints = 3;
 			done = false;
