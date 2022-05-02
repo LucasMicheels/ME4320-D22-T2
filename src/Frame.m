@@ -216,6 +216,31 @@ classdef Frame < handle
 					raw_data = [raw_data; transCoord(1), transCoord(2), sweep];
 				end
 			end
+		end
+
+		function raw_data = loadCyglidarData(obj, excel_file)
+			data = readtable(excel_file);
+			data(:,1) = [];
+			data = table2array(data);
+			
+			distance = [];
+			angle = [];
+			sweep = [];
+			for i = 1:size(data, 1)
+				for j = 1:161
+					distance = [distance; data(i, j)];
+					angle = [angle; j * (120/161)];
+					sweep = [sweep; i];
+				end
+			end
+			
+			raw_data = [];
+			for i = 1:size(angle, 1)
+				xt = distance(i) * cosd(angle(i));
+    			yt = distance(i) * sind(angle(i));
+				transCoord = [cosd(obj.sensorRotationCorrection), sind(obj.sensorRotationCorrection), obj.posX; -sind(obj.sensorRotationCorrection), cosd(obj.sensorRotationCorrection), obj.posY; 0, 0, 1] * [xt; yt; 1];
+				raw_data = [raw_data; transCoord(1), transCoord(2), sweep(i)];
+			end
         end
 
 		% code to filter walls based on dimensions; rawData is
